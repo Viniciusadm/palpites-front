@@ -1,4 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import {
   Outlet,
   Link,
@@ -11,6 +12,8 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import { persistOptions } from "../lib/query-persister";
+import { registerServiceWorker } from "../lib/register-sw";
 import { Toaster } from "@/components/ui/sonner";
 
 function NotFoundComponent() {
@@ -45,9 +48,7 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
-        <h1 className="text-xl font-semibold tracking-tight text-foreground">
-          Algo deu errado
-        </h1>
+        <h1 className="text-xl font-semibold tracking-tight text-foreground">Algo deu errado</h1>
         <p className="mt-2 text-sm text-muted-foreground">
           Tente recarregar a página ou voltar ao início.
         </p>
@@ -79,7 +80,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "Bolão Copa — Acompanhe seus palpites" },
-      { name: "description", content: "Crie e participe de bolões da Copa do Mundo com ranking ao vivo, palpites e histórico de pontos." },
+      {
+        name: "description",
+        content:
+          "Crie e participe de bolões da Copa do Mundo com ranking ao vivo, palpites e histórico de pontos.",
+      },
       { name: "theme-color", content: "#15191F" },
       { property: "og:title", content: "Bolão Copa" },
       { property: "og:description", content: "Crie bolões, registre palpites e suba no ranking." },
@@ -88,6 +93,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     ],
     links: [
       { rel: "stylesheet", href: appCss },
+      { rel: "manifest", href: "/manifest.webmanifest" },
+      { rel: "icon", href: "/icon-192.png", type: "image/png", sizes: "192x192" },
+      { rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
@@ -119,10 +127,24 @@ function RootShell({ children }: { children: ReactNode }) {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
-  return (
-    <QueryClientProvider client={queryClient}>
+  useEffect(() => {
+    registerServiceWorker();
+  }, []);
+
+  const content = (
+    <>
       <Outlet />
       <Toaster theme="dark" position="top-center" />
-    </QueryClientProvider>
+    </>
+  );
+
+  if (typeof document === "undefined") {
+    return <QueryClientProvider client={queryClient}>{content}</QueryClientProvider>;
+  }
+
+  return (
+    <PersistQueryClientProvider client={queryClient} persistOptions={persistOptions}>
+      {content}
+    </PersistQueryClientProvider>
   );
 }
