@@ -1,4 +1,4 @@
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClient } from "@tanstack/react-query";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import {
   Outlet,
@@ -6,12 +6,10 @@ import {
   createRootRouteWithContext,
   useRouter,
   HeadContent,
-  Scripts,
 } from "@tanstack/react-router";
-import { useEffect, type ReactNode } from "react";
+import { useEffect } from "react";
 
 import appCss from "../styles.css?url";
-import { reportLovableError } from "../lib/lovable-error-reporting";
 import { persistOptions } from "../lib/query-persister";
 import { registerServiceWorker } from "../lib/register-sw";
 import { Toaster } from "@/components/ui/sonner";
@@ -41,9 +39,6 @@ function NotFoundComponent() {
 function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   console.error(error);
   const router = useRouter();
-  useEffect(() => {
-    reportLovableError(error, { boundary: "tanstack_root_error_component" });
-  }, [error]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
@@ -104,25 +99,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
     ],
   }),
-  shellComponent: RootShell,
   component: RootComponent,
   notFoundComponent: NotFoundComponent,
   errorComponent: ErrorComponent,
 });
-
-function RootShell({ children }: { children: ReactNode }) {
-  return (
-    <html lang="pt-BR" className="dark">
-      <head>
-        <HeadContent />
-      </head>
-      <body>
-        {children}
-        <Scripts />
-      </body>
-    </html>
-  );
-}
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
@@ -131,20 +111,11 @@ function RootComponent() {
     registerServiceWorker();
   }, []);
 
-  const content = (
-    <>
-      <Outlet />
-      <Toaster theme="dark" position="top-center" />
-    </>
-  );
-
-  if (typeof document === "undefined") {
-    return <QueryClientProvider client={queryClient}>{content}</QueryClientProvider>;
-  }
-
   return (
     <PersistQueryClientProvider client={queryClient} persistOptions={persistOptions}>
-      {content}
+      <HeadContent />
+      <Outlet />
+      <Toaster theme="dark" position="top-center" />
     </PersistQueryClientProvider>
   );
 }
