@@ -9,14 +9,26 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as AppRouteImport } from './routes/app'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AppIndexRouteImport } from './routes/app.index'
 import { Route as BolaoEntrarRouteImport } from './routes/bolao.entrar'
 import { Route as BolaoCriarRouteImport } from './routes/bolao.criar'
 
+const AppRoute = AppRouteImport.update({
+  id: '/app',
+  path: '/app',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AppIndexRoute = AppIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppRoute,
 } as any)
 const BolaoEntrarRoute = BolaoEntrarRouteImport.update({
   id: '/bolao/entrar',
@@ -31,42 +43,62 @@ const BolaoCriarRoute = BolaoCriarRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/app': typeof AppRouteWithChildren
   '/bolao/criar': typeof BolaoCriarRoute
   '/bolao/entrar': typeof BolaoEntrarRoute
+  '/app/': typeof AppIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/bolao/criar': typeof BolaoCriarRoute
   '/bolao/entrar': typeof BolaoEntrarRoute
+  '/app': typeof AppIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/app': typeof AppRouteWithChildren
   '/bolao/criar': typeof BolaoCriarRoute
   '/bolao/entrar': typeof BolaoEntrarRoute
+  '/app/': typeof AppIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/bolao/criar' | '/bolao/entrar'
+  fullPaths: '/' | '/app' | '/bolao/criar' | '/bolao/entrar' | '/app/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/bolao/criar' | '/bolao/entrar'
-  id: '__root__' | '/' | '/bolao/criar' | '/bolao/entrar'
+  to: '/' | '/bolao/criar' | '/bolao/entrar' | '/app'
+  id: '__root__' | '/' | '/app' | '/bolao/criar' | '/bolao/entrar' | '/app/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AppRoute: typeof AppRouteWithChildren
   BolaoCriarRoute: typeof BolaoCriarRoute
   BolaoEntrarRoute: typeof BolaoEntrarRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/app': {
+      id: '/app'
+      path: '/app'
+      fullPath: '/app'
+      preLoaderRoute: typeof AppRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/app/': {
+      id: '/app/'
+      path: '/'
+      fullPath: '/app/'
+      preLoaderRoute: typeof AppIndexRouteImport
+      parentRoute: typeof AppRoute
     }
     '/bolao/entrar': {
       id: '/bolao/entrar'
@@ -85,8 +117,19 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AppRouteChildren {
+  AppIndexRoute: typeof AppIndexRoute
+}
+
+const AppRouteChildren: AppRouteChildren = {
+  AppIndexRoute: AppIndexRoute,
+}
+
+const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AppRoute: AppRouteWithChildren,
   BolaoCriarRoute: BolaoCriarRoute,
   BolaoEntrarRoute: BolaoEntrarRoute,
 }
