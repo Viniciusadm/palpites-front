@@ -108,8 +108,6 @@
   --sidebar-border: oklch(0.28 0.015 250 / 70%);
   --sidebar-ring: oklch(0.84 0.16 88);
 
-  --gradient-gold: linear-gradient(135deg, oklch(0.88 0.16 92), oklch(0.78 0.17 75));
-  --gradient-surface: linear-gradient(180deg, oklch(0.22 0.014 250), oklch(0.18 0.013 250));
   --shadow-gold: 0 10px 40px -12px oklch(0.84 0.16 88 / 0.35);
   --shadow-card: 0 4px 24px -8px oklch(0 0 0 / 0.5);
 }
@@ -126,13 +124,6 @@
     -webkit-font-smoothing: antialiased;
   }
 
-  body {
-    background-image:
-      radial-gradient(circle at 10% -10%, oklch(0.84 0.16 88 / 0.08), transparent 40%),
-      radial-gradient(circle at 90% 110%, oklch(0.84 0.16 88 / 0.05), transparent 40%);
-    background-attachment: fixed;
-  }
-
   h1, h2, h3, h4 {
     font-family: var(--font-display);
     letter-spacing: -0.02em;
@@ -140,14 +131,12 @@
 }
 
 @utility gold-gradient {
-  background-image: var(--gradient-gold);
+  background-color: var(--color-primary);
+  color: var(--color-primary-foreground);
 }
 
 @utility gold-text {
-  background-image: var(--gradient-gold);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  color: var(--color-primary);
 }
 
 @utility glow-gold {
