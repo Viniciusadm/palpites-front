@@ -100,7 +100,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       {drawer && (
         <div className="fixed inset-0 z-40 lg:hidden">
           <div className="absolute inset-0 bg-black/60" onClick={() => setDrawer(false)} />
-          <div className="absolute right-0 top-0 h-full w-72 bg-sidebar p-5 shadow-2xl">
+          <div className="absolute left-0 top-0 h-full w-72 bg-sidebar p-5 shadow-2xl">
             <div className="flex items-center justify-between">
               <span className="font-display font-semibold">Menu</span>
               <button onClick={() => setDrawer(false)} className="grid h-8 w-8 place-items-center rounded-lg bg-surface">
