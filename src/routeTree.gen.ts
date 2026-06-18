@@ -10,33 +10,53 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as BolaoEntrarRouteImport } from './routes/bolao.entrar'
+import { Route as BolaoCriarRouteImport } from './routes/bolao.criar'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BolaoEntrarRoute = BolaoEntrarRouteImport.update({
+  id: '/bolao/entrar',
+  path: '/bolao/entrar',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BolaoCriarRoute = BolaoCriarRouteImport.update({
+  id: '/bolao/criar',
+  path: '/bolao/criar',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/bolao/criar': typeof BolaoCriarRoute
+  '/bolao/entrar': typeof BolaoEntrarRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/bolao/criar': typeof BolaoCriarRoute
+  '/bolao/entrar': typeof BolaoEntrarRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/bolao/criar': typeof BolaoCriarRoute
+  '/bolao/entrar': typeof BolaoEntrarRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/bolao/criar' | '/bolao/entrar'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/bolao/criar' | '/bolao/entrar'
+  id: '__root__' | '/' | '/bolao/criar' | '/bolao/entrar'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  BolaoCriarRoute: typeof BolaoCriarRoute
+  BolaoEntrarRoute: typeof BolaoEntrarRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +68,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/bolao/entrar': {
+      id: '/bolao/entrar'
+      path: '/bolao/entrar'
+      fullPath: '/bolao/entrar'
+      preLoaderRoute: typeof BolaoEntrarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/bolao/criar': {
+      id: '/bolao/criar'
+      path: '/bolao/criar'
+      fullPath: '/bolao/criar'
+      preLoaderRoute: typeof BolaoCriarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  BolaoCriarRoute: BolaoCriarRoute,
+  BolaoEntrarRoute: BolaoEntrarRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
