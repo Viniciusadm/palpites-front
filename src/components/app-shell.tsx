@@ -78,15 +78,6 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       {/* Mobile top bar */}
       <header className="sticky top-0 z-20 flex items-center justify-between border-b border-border bg-background/80 px-4 py-3 backdrop-blur lg:hidden">
-        <div className="flex items-center gap-2">
-          <div className="grid h-8 w-8 place-items-center rounded-lg gold-gradient">
-            <Trophy className="h-4 w-4 text-primary-foreground" />
-          </div>
-          <div className="min-w-0">
-            <div className="font-display text-sm font-semibold leading-tight">Bolão Copa</div>
-            <div className="truncate text-[10px] text-muted-foreground">{BOLAO_NAME}</div>
-          </div>
-        </div>
         <button
           onClick={() => setDrawer(true)}
           className="grid h-9 w-9 place-items-center rounded-lg border border-border bg-surface"
@@ -94,6 +85,15 @@ export function AppShell({ children }: { children: ReactNode }) {
         >
           <Menu className="h-4.5 w-4.5" />
         </button>
+        <div className="flex items-center gap-2">
+          <div className="grid h-8 w-8 place-items-center rounded-lg gold-gradient">
+            <Trophy className="h-4 w-4 text-primary-foreground" />
+          </div>
+          <div className="min-w-0 text-right">
+            <div className="font-display text-sm font-semibold leading-tight">Bolão Copa</div>
+            <div className="truncate text-[10px] text-muted-foreground">{BOLAO_NAME}</div>
+          </div>
+        </div>
       </header>
 
       {/* Mobile drawer */}
