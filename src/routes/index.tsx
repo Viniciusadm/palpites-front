@@ -6,7 +6,11 @@ export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       { title: "Bolão Copa — Crie ou entre em um bolão" },
-      { name: "description", content: "Crie seu bolão da Copa do Mundo ou entre em um existente. Palpites, ranking e história em um só lugar." },
+      {
+        name: "description",
+        content:
+          "Crie seu bolão da Copa do Mundo ou entre em um existente. Palpites, ranking e história em um só lugar.",
+      },
     ],
   }),
   component: Landing,
@@ -25,7 +29,7 @@ function Landing() {
           <span className="font-display text-lg font-semibold">Bolão Copa</span>
         </Link>
         <Link
-          to="/app/palpites"
+          to="/login"
           className="text-sm text-muted-foreground hover:text-primary transition-colors"
         >
           Já tenho conta →
@@ -43,7 +47,8 @@ function Landing() {
           <span className="gold-text">Vença com estilo.</span>
         </h1>
         <p className="mx-auto mt-5 max-w-xl text-base text-muted-foreground sm:text-lg">
-          Crie um bolão em segundos, convide a galera e acompanhe o ranking em tempo real durante toda a Copa.
+          Crie um bolão em segundos, convide a galera e acompanhe o ranking em tempo real durante
+          toda a Copa.
         </p>
 
         <div className="mx-auto mt-10 grid max-w-3xl gap-4 sm:grid-cols-2">
@@ -57,7 +62,8 @@ function Landing() {
                 Monte seu bolão e gere um link de convite para compartilhar.
               </p>
               <div className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-primary">
-                Começar agora <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                Começar agora{" "}
+                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
               </div>
             </div>
           </Link>
@@ -72,7 +78,8 @@ function Landing() {
                 Tenho um código ou link de convite e quero participar.
               </p>
               <div className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-primary">
-                Tenho um código <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                Tenho um código{" "}
+                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
               </div>
             </div>
           </Link>

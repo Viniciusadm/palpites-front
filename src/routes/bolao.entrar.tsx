@@ -1,34 +1,52 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { ArrowLeft, KeyRound } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useJoinPool } from "@/api/pools";
+import { getToken } from "@/api/session";
+import { useAuthStore } from "@/store/auth-store";
 
 export const Route = createFileRoute("/bolao/entrar")({
-  head: () => ({
-    meta: [{ title: "Entrar em bolão — Bolão Copa" }],
-  }),
+  head: () => ({ meta: [{ title: "Entrar em bolão — Bolão Copa" }] }),
+  beforeLoad: () => {
+    if (typeof window !== "undefined" && !getToken()) {
+      throw redirect({ to: "/login" });
+    }
+  },
   component: EntrarBolao,
 });
 
 function EntrarBolao() {
   const [code, setCode] = useState("");
   const navigate = useNavigate();
+  const setPoolId = useAuthStore((s) => s.setPoolId);
+  const joinPool = useJoinPool();
 
   const handleJoin = () => {
     if (!code.trim()) {
-      toast.error("Informe o código ou link do bolão");
+      toast.error("Informe o código do bolão");
       return;
     }
-    toast.success("Bem-vindo ao bolão!");
-    navigate({ to: "/app/palpites" });
+    joinPool.mutate(code.trim(), {
+      onSuccess: (res) => {
+        setPoolId(res.pool.id);
+        toast.success(res.already_member ? "Você já participa deste bolão" : "Bem-vindo ao bolão!");
+        navigate({ to: "/app/palpites" });
+      },
+      onError: (error) =>
+        toast.error(error instanceof Error ? error.message : "Não foi possível entrar"),
+    });
   };
 
   return (
     <main className="mx-auto min-h-screen max-w-xl px-5 py-8">
-      <Link to="/" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary">
+      <Link
+        to="/"
+        className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary"
+      >
         <ArrowLeft className="h-4 w-4" /> Voltar
       </Link>
 
@@ -38,14 +56,14 @@ function EntrarBolao() {
         </div>
         <h1 className="mt-5 font-display text-2xl font-bold sm:text-3xl">Entrar em um bolão</h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          Cole o link de convite ou digite o código que você recebeu.
+          Digite o código de convite que você recebeu.
         </p>
 
         <div className="mt-8 space-y-2">
-          <Label htmlFor="code">Código ou link</Label>
+          <Label htmlFor="code">Código de convite</Label>
           <Input
             id="code"
-            placeholder="COPA-2026-XK7 ou https://boloes.app/j/..."
+            placeholder="Ex: COPA-2026-XK7"
             value={code}
             onChange={(e) => setCode(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleJoin()}
@@ -53,8 +71,12 @@ function EntrarBolao() {
           />
         </div>
 
-        <Button onClick={handleJoin} className="mt-6 h-12 w-full gold-gradient text-base font-semibold text-primary-foreground hover:opacity-90">
-          Entrar no bolão
+        <Button
+          onClick={handleJoin}
+          disabled={joinPool.isPending}
+          className="mt-6 h-12 w-full gold-gradient text-base font-semibold text-primary-foreground hover:opacity-90"
+        >
+          {joinPool.isPending ? "Entrando..." : "Entrar no bolão"}
         </Button>
 
         <p className="mt-6 text-center text-xs text-muted-foreground">

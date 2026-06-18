@@ -2,130 +2,218 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMemo } from "react";
 import { Check, X, Clock, TrendingUp } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useAppStore } from "@/store/app-store";
-import {
-  CURRENT_USER_ID,
-  getSelecao,
-  pointsFor,
-} from "@/mocks/data";
+import { useHistory } from "@/api/history";
+import { useMatches } from "@/api/matches";
+import { useTeams } from "@/api/teams";
+import { teamToSelecao } from "@/api/adapters";
+import { usePools } from "@/api/pools";
+import { useAuthStore } from "@/store/auth-store";
+import type { MatchResponse } from "@/api/types";
+import type { Selecao } from "@/api/types";
 
 export const Route = createFileRoute("/app/historico")({
   head: () => ({ meta: [{ title: "Histórico — Bolão Copa" }] }),
   component: HistoricoPage,
 });
 
+const TBD: Selecao = { id: "", nome: "A definir", flag: "🏳️", grupo: "" };
+
 function HistoricoPage() {
-  const partidas = useAppStore((s) => s.partidas);
-  const palpites = useAppStore((s) => s.palpites);
+  const poolId = useAuthStore((s) => s.poolId) ?? "";
+  const pools = usePools();
+  const tournamentId = pools.data?.find((p) => p.id === poolId)?.tournament_id ?? "";
 
-  const meus = useMemo(
-    () => palpites.filter((p) => p.userId === CURRENT_USER_ID),
-    [palpites],
-  );
-  const matchById = useMemo(() => new Map(partidas.map((m) => [m.id, m])), [partidas]);
+  const history = useHistory(poolId);
+  const matches = useMatches(tournamentId);
+  const teams = useTeams();
 
-  const futuros = meus.filter((p) => matchById.get(p.matchId)?.status === "scheduled");
-  const passados = meus
-    .filter((p) => matchById.get(p.matchId)?.status === "finished")
-    .sort((a, b) => +new Date(matchById.get(b.matchId)!.date) - +new Date(matchById.get(a.matchId)!.date));
+  const matchById = useMemo(() => {
+    const map = new Map<string, MatchResponse>();
+    (matches.data ?? []).forEach((m) => map.set(m.id, m));
+    return map;
+  }, [matches.data]);
 
-  let acertos = 0;
-  let erros = 0;
-  let pontos = 0;
-  passados.forEach((p) => {
-    const m = matchById.get(p.matchId)!;
-    const pts = pointsFor(p, m);
-    pontos += pts;
-    if (pts > 0) acertos += 1;
-    else erros += 1;
-  });
+  const teamsById = useMemo(() => {
+    const map = new Map<string, Selecao>();
+    (teams.data ?? []).forEach((t) => map.set(t.id, teamToSelecao(t)));
+    return map;
+  }, [teams.data]);
+
+  const entries = history.data?.entries ?? [];
+  const futuros = entries.filter((e) => e.match_status === "scheduled");
+  const passados = [...entries]
+    .filter((e) => e.match_status === "finished")
+    .sort((a, b) => +new Date(b.kickoff_at) - +new Date(a.kickoff_at));
+
+  const teamsFor = (matchId: string) => {
+    const m = matchById.get(matchId);
+    return {
+      home: (m?.home_team_id && teamsById.get(m.home_team_id)) || TBD,
+      away: (m?.away_team_id && teamsById.get(m.away_team_id)) || TBD,
+    };
+  };
+
+  const isPending = history.isPending || matches.isPending || teams.isPending;
+  const isError = history.isError || matches.isError || teams.isError;
+
+  const retry = () => {
+    history.refetch();
+    matches.refetch();
+    teams.refetch();
+  };
 
   return (
     <div>
       <header className="mb-6">
         <h1 className="font-display text-2xl font-bold sm:text-3xl">Histórico</h1>
-        <p className="mt-1 text-sm text-muted-foreground">Acompanhe seu desempenho ao longo do bolão.</p>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Acompanhe seu desempenho ao longo do bolão.
+        </p>
       </header>
 
-      <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <Stat label="Pontos" value={pontos} color="text-primary" Icon={TrendingUp} />
-        <Stat label="Acertos" value={acertos} color="text-success" Icon={Check} />
-        <Stat label="Erros" value={erros} color="text-destructive" Icon={X} />
-        <Stat label="Futuros" value={futuros.length} color="text-muted-foreground" Icon={Clock} />
-      </div>
+      {isPending ? (
+        <div className="space-y-3">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="h-20 animate-pulse rounded-2xl bg-primary/10" />
+            ))}
+          </div>
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="h-16 animate-pulse rounded-xl bg-primary/10" />
+          ))}
+        </div>
+      ) : isError ? (
+        <div className="rounded-2xl border border-border bg-card p-10 text-center">
+          <p className="text-sm text-muted-foreground">Não foi possível carregar o histórico.</p>
+          <button
+            onClick={retry}
+            className="mt-4 inline-flex items-center justify-center rounded-md gold-gradient px-4 py-2 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90"
+          >
+            Tentar novamente
+          </button>
+        </div>
+      ) : (
+        <>
+          <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <Stat
+              label="Pontos"
+              value={history.data!.total_points}
+              color="text-primary"
+              Icon={TrendingUp}
+            />
+            <Stat
+              label="Acertos"
+              value={history.data!.hits_count}
+              color="text-success"
+              Icon={Check}
+            />
+            <Stat
+              label="Erros"
+              value={history.data!.errors_count}
+              color="text-destructive"
+              Icon={X}
+            />
+            <Stat
+              label="Futuros"
+              value={history.data!.pending_count}
+              color="text-muted-foreground"
+              Icon={Clock}
+            />
+          </div>
 
-      {futuros.length > 0 && (
-        <Section title="Palpites futuros">
-          <ul className="space-y-2">
-            {futuros.map((p) => {
-              const m = matchById.get(p.matchId)!;
-              const home = getSelecao(m.homeId);
-              const away = getSelecao(m.awayId);
-              return (
-                <li key={p.matchId} className="flex items-center gap-3 rounded-xl border border-border bg-card p-3 text-sm">
-                  <span className="rounded-md bg-primary/15 px-2 py-0.5 text-[10px] font-semibold text-primary">
-                    {new Date(m.date).toLocaleDateString("pt-BR", { day: "2-digit", month: "short" })}
-                  </span>
-                  <span className="flex-1 truncate">
-                    {home.flag} {home.nome} <span className="text-muted-foreground">vs</span> {away.nome} {away.flag}
-                  </span>
-                  <span className="font-display font-bold tabular-nums">{p.home} × {p.away}</span>
-                </li>
-              );
-            })}
-          </ul>
-        </Section>
+          {futuros.length > 0 && (
+            <Section title="Palpites futuros">
+              <ul className="space-y-2">
+                {futuros.map((e) => {
+                  const { home, away } = teamsFor(e.match_id);
+                  return (
+                    <li
+                      key={e.match_id}
+                      className="flex items-center gap-3 rounded-xl border border-border bg-card p-3 text-sm"
+                    >
+                      <span className="rounded-md bg-primary/15 px-2 py-0.5 text-[10px] font-semibold text-primary">
+                        {new Date(e.kickoff_at).toLocaleDateString("pt-BR", {
+                          day: "2-digit",
+                          month: "short",
+                        })}
+                      </span>
+                      <span className="flex-1 truncate">
+                        {home.flag} {home.nome} <span className="text-muted-foreground">vs</span>{" "}
+                        {away.nome} {away.flag}
+                      </span>
+                      <span className="font-display font-bold tabular-nums">
+                        {e.prediction_home} × {e.prediction_away}
+                      </span>
+                    </li>
+                  );
+                })}
+              </ul>
+            </Section>
+          )}
+
+          <Section title="Palpites anteriores">
+            {passados.length === 0 ? (
+              <p className="rounded-xl border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
+                Nenhum palpite encerrado ainda.
+              </p>
+            ) : (
+              <ul className="space-y-2">
+                {passados.map((e) => {
+                  const { home, away } = teamsFor(e.match_id);
+                  const pts = e.points_awarded ?? 0;
+                  const win = pts > 0;
+                  return (
+                    <li
+                      key={e.match_id}
+                      className={cn(
+                        "flex items-center gap-3 rounded-xl border bg-card p-3 text-sm",
+                        e.hit_kind === "exact" && "border-success/40",
+                        e.hit_kind === "outcome" && "border-primary/40",
+                        !win && "border-border",
+                      )}
+                    >
+                      <div
+                        className={cn(
+                          "grid h-8 w-8 place-items-center rounded-full",
+                          win ? "bg-success/20 text-success" : "bg-destructive/15 text-destructive",
+                        )}
+                      >
+                        {win ? <Check className="h-4 w-4" /> : <X className="h-4 w-4" />}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="truncate text-sm font-medium">
+                          {home.flag} {home.nome} <span className="text-muted-foreground">vs</span>{" "}
+                          {away.nome} {away.flag}
+                        </div>
+                        <div className="mt-0.5 text-xs text-muted-foreground">
+                          Palpite:{" "}
+                          <span className="text-foreground">
+                            {e.prediction_home} × {e.prediction_away}
+                          </span>{" "}
+                          · Real:{" "}
+                          <span className="text-foreground">
+                            {e.result_home} × {e.result_away}
+                          </span>
+                        </div>
+                      </div>
+                      <span
+                        className={cn(
+                          "rounded-md px-2 py-1 text-xs font-semibold tabular-nums",
+                          e.hit_kind === "exact" && "bg-success/20 text-success",
+                          e.hit_kind === "outcome" && "bg-primary/20 text-primary",
+                          !win && "bg-muted text-muted-foreground",
+                        )}
+                      >
+                        {win ? `+${pts}` : "0"} pts
+                      </span>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </Section>
+        </>
       )}
-
-      <Section title="Palpites anteriores">
-        <ul className="space-y-2">
-          {passados.map((p) => {
-            const m = matchById.get(p.matchId)!;
-            const pts = pointsFor(p, m);
-            const home = getSelecao(m.homeId);
-            const away = getSelecao(m.awayId);
-            return (
-              <li
-                key={p.matchId}
-                className={cn(
-                  "flex items-center gap-3 rounded-xl border bg-card p-3 text-sm",
-                  pts === 10 && "border-success/40",
-                  pts === 5 && "border-primary/40",
-                  pts === 0 && "border-border",
-                )}
-              >
-                <div
-                  className={cn(
-                    "grid h-8 w-8 place-items-center rounded-full",
-                    pts > 0 ? "bg-success/20 text-success" : "bg-destructive/15 text-destructive",
-                  )}
-                >
-                  {pts > 0 ? <Check className="h-4 w-4" /> : <X className="h-4 w-4" />}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="truncate text-sm font-medium">
-                    {home.flag} {home.nome} <span className="text-muted-foreground">vs</span> {away.nome} {away.flag}
-                  </div>
-                  <div className="mt-0.5 text-xs text-muted-foreground">
-                    Palpite: <span className="text-foreground">{p.home} × {p.away}</span> · Real:{" "}
-                    <span className="text-foreground">{m.homeScore} × {m.awayScore}</span>
-                  </div>
-                </div>
-                <span
-                  className={cn(
-                    "rounded-md px-2 py-1 text-xs font-semibold tabular-nums",
-                    pts === 10 && "bg-success/20 text-success",
-                    pts === 5 && "bg-primary/20 text-primary",
-                    pts === 0 && "bg-muted text-muted-foreground",
-                  )}
-                >
-                  {pts > 0 ? `+${pts}` : "0"} pts
-                </span>
-              </li>
-            );
-          })}
-        </ul>
-      </Section>
     </div>
   );
 }
@@ -155,7 +243,9 @@ function Stat({
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section className="mb-8">
-      <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">{title}</h2>
+      <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+        {title}
+      </h2>
       {children}
     </section>
   );

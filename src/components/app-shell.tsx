@@ -1,4 +1,4 @@
-import { Link, useRouterState } from "@tanstack/react-router";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
   CalendarDays,
   ListChecks,
@@ -9,10 +9,14 @@ import {
   Wrench,
   Menu,
   X,
+  LogOut,
 } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
-import { BOLAO_NAME } from "@/mocks/data";
+import { usePools } from "@/api/pools";
+import { useMe } from "@/api/auth";
+import { clearToken } from "@/api/session";
+import { useAuthStore } from "@/store/auth-store";
 
 const navItems = [
   { to: "/app/palpites", label: "Meus palpites", icon: ListChecks },
@@ -28,6 +32,20 @@ const mobileNav = navItems.slice(0, 4);
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const [drawer, setDrawer] = useState(false);
+  const navigate = useNavigate();
+  const pools = usePools();
+  const poolId = useAuthStore((s) => s.poolId);
+  const displayName = useAuthStore((s) => s.displayName);
+  const clear = useAuthStore((s) => s.clear);
+  const me = useMe();
+  const isAdmin = me.data?.user.role === "admin";
+  const poolName = pools.data?.find((p) => p.id === poolId)?.name ?? "";
+
+  const logout = () => {
+    clearToken();
+    clear();
+    navigate({ to: "/login" });
+  };
 
   return (
     <div className="min-h-screen">
@@ -39,7 +57,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
           <div>
             <div className="font-display text-sm font-semibold leading-tight">Bolão Copa</div>
-            <div className="text-[11px] text-muted-foreground">{BOLAO_NAME}</div>
+            <div className="text-[11px] text-muted-foreground">{poolName}</div>
           </div>
         </div>
 
@@ -65,14 +83,28 @@ export function AppShell({ children }: { children: ReactNode }) {
           })}
         </nav>
 
-        <div className="border-t border-sidebar-border p-3">
-          <Link
-            to="/admin/selecoes"
-            className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-sidebar-accent hover:text-foreground"
+        <div className="space-y-1 border-t border-sidebar-border p-3">
+          {displayName && (
+            <div className="px-3 py-1.5 text-[11px] text-muted-foreground">
+              Olá, <span className="font-semibold text-foreground">{displayName}</span>
+            </div>
+          )}
+          {isAdmin && (
+            <Link
+              to="/admin/selecoes"
+              className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-sidebar-accent hover:text-foreground"
+            >
+              <Wrench className="h-4.5 w-4.5" />
+              Admin
+            </Link>
+          )}
+          <button
+            onClick={logout}
+            className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-sidebar-accent hover:text-foreground"
           >
-            <Wrench className="h-4.5 w-4.5" />
-            Admin
-          </Link>
+            <LogOut className="h-4.5 w-4.5" />
+            Sair
+          </button>
         </div>
       </aside>
 
@@ -91,7 +123,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
           <div className="min-w-0 text-right">
             <div className="font-display text-sm font-semibold leading-tight">Bolão Copa</div>
-            <div className="truncate text-[10px] text-muted-foreground">{BOLAO_NAME}</div>
+            <div className="truncate text-[10px] text-muted-foreground">{poolName}</div>
           </div>
         </div>
       </header>
@@ -118,7 +150,10 @@ export function AppShell({ children }: { children: ReactNode }) {
         >
           <div className="flex items-center justify-between">
             <span className="font-display font-semibold">Menu</span>
-            <button onClick={() => setDrawer(false)} className="grid h-8 w-8 place-items-center rounded-lg bg-surface">
+            <button
+              onClick={() => setDrawer(false)}
+              className="grid h-8 w-8 place-items-center rounded-lg bg-surface"
+            >
               <X className="h-4 w-4" />
             </button>
           </div>
@@ -133,7 +168,9 @@ export function AppShell({ children }: { children: ReactNode }) {
                   onClick={() => setDrawer(false)}
                   className={cn(
                     "flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium",
-                    active ? "bg-primary/15 text-primary" : "text-sidebar-foreground hover:bg-sidebar-accent",
+                    active
+                      ? "bg-primary/15 text-primary"
+                      : "text-sidebar-foreground hover:bg-sidebar-accent",
                   )}
                 >
                   <Icon className="h-4.5 w-4.5" />
@@ -141,13 +178,24 @@ export function AppShell({ children }: { children: ReactNode }) {
                 </Link>
               );
             })}
-            <Link
-              to="/admin/selecoes"
-              onClick={() => setDrawer(false)}
-              className="mt-4 flex items-center gap-3 rounded-xl border border-border px-3 py-3 text-sm font-medium text-muted-foreground"
+            {isAdmin && (
+              <Link
+                to="/admin/selecoes"
+                onClick={() => setDrawer(false)}
+                className="mt-4 flex items-center gap-3 rounded-xl border border-border px-3 py-3 text-sm font-medium text-muted-foreground"
+              >
+                <Wrench className="h-4.5 w-4.5" /> Admin
+              </Link>
+            )}
+            <button
+              onClick={() => {
+                setDrawer(false);
+                logout();
+              }}
+              className="mt-2 flex w-full items-center gap-3 rounded-xl border border-border px-3 py-3 text-sm font-medium text-muted-foreground"
             >
-              <Wrench className="h-4.5 w-4.5" /> Admin
-            </Link>
+              <LogOut className="h-4.5 w-4.5" /> Sair
+            </button>
           </nav>
         </div>
       </div>

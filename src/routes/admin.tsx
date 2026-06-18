@@ -1,8 +1,14 @@
-import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, redirect, useRouterState } from "@tanstack/react-router";
 import { ArrowLeft, Flag, Calendar } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { getToken } from "@/api/session";
 
 export const Route = createFileRoute("/admin")({
+  beforeLoad: () => {
+    if (typeof window !== "undefined" && !getToken()) {
+      throw redirect({ to: "/login" });
+    }
+  },
   component: AdminLayout,
 });
 
@@ -13,7 +19,10 @@ function AdminLayout() {
       <header className="border-b border-border bg-surface/40 backdrop-blur">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-5 py-4">
           <div className="flex items-center gap-3">
-            <Link to="/app/palpites" className="grid h-9 w-9 place-items-center rounded-lg border border-border bg-surface text-muted-foreground hover:text-primary">
+            <Link
+              to="/app/palpites"
+              className="grid h-9 w-9 place-items-center rounded-lg border border-border bg-surface text-muted-foreground hover:text-primary"
+            >
               <ArrowLeft className="h-4 w-4" />
             </Link>
             <div>
@@ -23,8 +32,18 @@ function AdminLayout() {
           </div>
         </div>
         <nav className="mx-auto flex max-w-5xl gap-1 px-3 pb-2">
-          <Tab to="/admin/selecoes" active={pathname === "/admin/selecoes"} Icon={Flag} label="Seleções" />
-          <Tab to="/admin/partidas" active={pathname === "/admin/partidas"} Icon={Calendar} label="Partidas" />
+          <Tab
+            to="/admin/selecoes"
+            active={pathname === "/admin/selecoes"}
+            Icon={Flag}
+            label="Seleções"
+          />
+          <Tab
+            to="/admin/partidas"
+            active={pathname === "/admin/partidas"}
+            Icon={Calendar}
+            label="Partidas"
+          />
         </nav>
       </header>
       <main className="mx-auto max-w-5xl px-5 py-6 pb-16">

@@ -6,13 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import {
-  CURRENT_USER_ID,
-  getSelecao,
-  pointsFor,
-  type Partida,
-} from "@/mocks/data";
-import { useAppStore } from "@/store/app-store";
+import { type Partida, type Selecao } from "@/api/types";
 
 function StatusBadge({ status }: { status: Partida["status"] }) {
   if (status === "live") {
@@ -39,15 +33,7 @@ function StatusBadge({ status }: { status: Partida["status"] }) {
   );
 }
 
-function TeamSide({
-  flag,
-  name,
-  align,
-}: {
-  flag: string;
-  name: string;
-  align: "left" | "right";
-}) {
+function TeamSide({ flag, name, align }: { flag: string; name: string; align: "left" | "right" }) {
   return (
     <div
       className={cn(
@@ -61,19 +47,28 @@ function TeamSide({
   );
 }
 
-export function MatchCard({ match }: { match: Partida }) {
-  const home = getSelecao(match.homeId);
-  const away = getSelecao(match.awayId);
-  const palpite = useAppStore((s) =>
-    s.palpites.find((p) => p.userId === CURRENT_USER_ID && p.matchId === match.id),
-  );
-  const setPalpite = useAppStore((s) => s.setPalpite);
+export function MatchCard({
+  match,
+  home,
+  away,
+  editable = true,
+  prediction,
+  onSave,
+  saving = false,
+}: {
+  match: Partida;
+  home: Selecao;
+  away: Selecao;
+  editable?: boolean;
+  prediction?: { home: number; away: number; points: number | null };
+  onSave?: (home: number, away: number) => void;
+  saving?: boolean;
+}) {
+  const [h, setH] = useState<string>(prediction?.home?.toString() ?? "");
+  const [a, setA] = useState<string>(prediction?.away?.toString() ?? "");
 
-  const [h, setH] = useState<string>(palpite?.home?.toString() ?? "");
-  const [a, setA] = useState<string>(palpite?.away?.toString() ?? "");
-
-  const locked = match.status !== "scheduled";
-  const pts = palpite && match.status === "finished" ? pointsFor(palpite, match) : 0;
+  const locked = !editable || match.status !== "scheduled";
+  const pts = match.status === "finished" ? (prediction?.points ?? 0) : 0;
 
   const save = () => {
     const hn = parseInt(h, 10);
@@ -82,8 +77,7 @@ export function MatchCard({ match }: { match: Partida }) {
       toast.error("Informe um placar válido");
       return;
     }
-    setPalpite(match.id, hn, an);
-    toast.success("Palpite salvo!");
+    onSave?.(hn, an);
   };
 
   const date = new Date(match.date);
@@ -103,7 +97,9 @@ export function MatchCard({ match }: { match: Partida }) {
         <div className="flex items-center gap-2">
           <span className="font-medium text-foreground/80">{match.fase}</span>
           <span>•</span>
-          <span>{dateStr} • {timeStr}</span>
+          <span>
+            {dateStr} • {timeStr}
+          </span>
         </div>
         <StatusBadge status={match.status} />
       </header>
@@ -115,11 +111,11 @@ export function MatchCard({ match }: { match: Partida }) {
           {locked ? (
             <div className="flex shrink-0 items-center gap-1 px-2">
               <span className="font-display text-2xl font-bold tabular-nums sm:text-3xl">
-                {match.homeScore}
+                {match.homeScore ?? "–"}
               </span>
               <span className="text-muted-foreground">×</span>
               <span className="font-display text-2xl font-bold tabular-nums sm:text-3xl">
-                {match.awayScore}
+                {match.awayScore ?? "–"}
               </span>
             </div>
           ) : (
@@ -145,19 +141,20 @@ export function MatchCard({ match }: { match: Partida }) {
           <TeamSide flag={away.flag} name={away.nome} align="right" />
         </div>
 
-        {locked && palpite && (
+        {editable && locked && prediction && (
           <div className="mt-4 flex items-center justify-between rounded-xl bg-surface px-3 py-2 text-xs">
             <div className="flex items-center gap-2 text-muted-foreground">
               <Lock className="h-3.5 w-3.5" />
-              Seu palpite: <span className="font-semibold text-foreground tabular-nums">{palpite.home} × {palpite.away}</span>
+              Seu palpite:{" "}
+              <span className="font-semibold text-foreground tabular-nums">
+                {prediction.home} × {prediction.away}
+              </span>
             </div>
-            {match.status === "finished" && (
+            {match.status === "finished" && prediction.points !== null && (
               <span
                 className={cn(
                   "rounded-md px-2 py-0.5 font-semibold tabular-nums",
-                  pts === 10 && "bg-success/20 text-success",
-                  pts === 5 && "bg-primary/20 text-primary",
-                  pts === 0 && "bg-destructive/15 text-destructive",
+                  pts > 0 ? "bg-success/20 text-success" : "bg-destructive/15 text-destructive",
                 )}
               >
                 {pts > 0 ? `+${pts} pts` : "0 pts"}
@@ -170,9 +167,10 @@ export function MatchCard({ match }: { match: Partida }) {
           <Button
             onClick={save}
             size="sm"
+            disabled={saving}
             className="mt-4 w-full gold-gradient font-semibold text-primary-foreground hover:opacity-90"
           >
-            Salvar palpite
+            {saving ? "Salvando..." : "Salvar palpite"}
           </Button>
         )}
       </div>
