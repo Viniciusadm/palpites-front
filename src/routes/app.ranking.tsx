@@ -34,7 +34,7 @@ function RankingPage() {
         {podium.map((row, i) => {
           const isMe = row.participante.id === CURRENT_USER_ID;
           const colors = [
-            "border-primary/60 bg-gradient-to-b from-primary/15 to-transparent",
+            "border-primary/60 bg-primary/10",
             "border-border bg-card",
             "border-border bg-card",
           ];
