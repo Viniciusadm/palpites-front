@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Lock, Check, Clock, CircleDot } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { NumericInput } from "@/components/ui/numeric-input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
