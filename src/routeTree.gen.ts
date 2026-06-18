@@ -14,6 +14,12 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppIndexRouteImport } from './routes/app.index'
 import { Route as BolaoEntrarRouteImport } from './routes/bolao.entrar'
 import { Route as BolaoCriarRouteImport } from './routes/bolao.criar'
+import { Route as AppRankingRouteImport } from './routes/app.ranking'
+import { Route as AppParticipantesRouteImport } from './routes/app.participantes'
+import { Route as AppPalpitesRouteImport } from './routes/app.palpites'
+import { Route as AppJogosRouteImport } from './routes/app.jogos'
+import { Route as AppHistoricoRouteImport } from './routes/app.historico'
+import { Route as AppConfiguracoesRouteImport } from './routes/app.configuracoes'
 
 const AppRoute = AppRouteImport.update({
   id: '/app',
@@ -40,16 +46,58 @@ const BolaoCriarRoute = BolaoCriarRouteImport.update({
   path: '/bolao/criar',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppRankingRoute = AppRankingRouteImport.update({
+  id: '/ranking',
+  path: '/ranking',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppParticipantesRoute = AppParticipantesRouteImport.update({
+  id: '/participantes',
+  path: '/participantes',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppPalpitesRoute = AppPalpitesRouteImport.update({
+  id: '/palpites',
+  path: '/palpites',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppJogosRoute = AppJogosRouteImport.update({
+  id: '/jogos',
+  path: '/jogos',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppHistoricoRoute = AppHistoricoRouteImport.update({
+  id: '/historico',
+  path: '/historico',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppConfiguracoesRoute = AppConfiguracoesRouteImport.update({
+  id: '/configuracoes',
+  path: '/configuracoes',
+  getParentRoute: () => AppRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
+  '/app/configuracoes': typeof AppConfiguracoesRoute
+  '/app/historico': typeof AppHistoricoRoute
+  '/app/jogos': typeof AppJogosRoute
+  '/app/palpites': typeof AppPalpitesRoute
+  '/app/participantes': typeof AppParticipantesRoute
+  '/app/ranking': typeof AppRankingRoute
   '/bolao/criar': typeof BolaoCriarRoute
   '/bolao/entrar': typeof BolaoEntrarRoute
   '/app/': typeof AppIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/app/configuracoes': typeof AppConfiguracoesRoute
+  '/app/historico': typeof AppHistoricoRoute
+  '/app/jogos': typeof AppJogosRoute
+  '/app/palpites': typeof AppPalpitesRoute
+  '/app/participantes': typeof AppParticipantesRoute
+  '/app/ranking': typeof AppRankingRoute
   '/bolao/criar': typeof BolaoCriarRoute
   '/bolao/entrar': typeof BolaoEntrarRoute
   '/app': typeof AppIndexRoute
@@ -58,16 +106,55 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
+  '/app/configuracoes': typeof AppConfiguracoesRoute
+  '/app/historico': typeof AppHistoricoRoute
+  '/app/jogos': typeof AppJogosRoute
+  '/app/palpites': typeof AppPalpitesRoute
+  '/app/participantes': typeof AppParticipantesRoute
+  '/app/ranking': typeof AppRankingRoute
   '/bolao/criar': typeof BolaoCriarRoute
   '/bolao/entrar': typeof BolaoEntrarRoute
   '/app/': typeof AppIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/app' | '/bolao/criar' | '/bolao/entrar' | '/app/'
+  fullPaths:
+    | '/'
+    | '/app'
+    | '/app/configuracoes'
+    | '/app/historico'
+    | '/app/jogos'
+    | '/app/palpites'
+    | '/app/participantes'
+    | '/app/ranking'
+    | '/bolao/criar'
+    | '/bolao/entrar'
+    | '/app/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/bolao/criar' | '/bolao/entrar' | '/app'
-  id: '__root__' | '/' | '/app' | '/bolao/criar' | '/bolao/entrar' | '/app/'
+  to:
+    | '/'
+    | '/app/configuracoes'
+    | '/app/historico'
+    | '/app/jogos'
+    | '/app/palpites'
+    | '/app/participantes'
+    | '/app/ranking'
+    | '/bolao/criar'
+    | '/bolao/entrar'
+    | '/app'
+  id:
+    | '__root__'
+    | '/'
+    | '/app'
+    | '/app/configuracoes'
+    | '/app/historico'
+    | '/app/jogos'
+    | '/app/palpites'
+    | '/app/participantes'
+    | '/app/ranking'
+    | '/bolao/criar'
+    | '/bolao/entrar'
+    | '/app/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -114,14 +201,68 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BolaoCriarRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/app/ranking': {
+      id: '/app/ranking'
+      path: '/ranking'
+      fullPath: '/app/ranking'
+      preLoaderRoute: typeof AppRankingRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/participantes': {
+      id: '/app/participantes'
+      path: '/participantes'
+      fullPath: '/app/participantes'
+      preLoaderRoute: typeof AppParticipantesRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/palpites': {
+      id: '/app/palpites'
+      path: '/palpites'
+      fullPath: '/app/palpites'
+      preLoaderRoute: typeof AppPalpitesRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/jogos': {
+      id: '/app/jogos'
+      path: '/jogos'
+      fullPath: '/app/jogos'
+      preLoaderRoute: typeof AppJogosRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/historico': {
+      id: '/app/historico'
+      path: '/historico'
+      fullPath: '/app/historico'
+      preLoaderRoute: typeof AppHistoricoRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/configuracoes': {
+      id: '/app/configuracoes'
+      path: '/configuracoes'
+      fullPath: '/app/configuracoes'
+      preLoaderRoute: typeof AppConfiguracoesRouteImport
+      parentRoute: typeof AppRoute
+    }
   }
 }
 
 interface AppRouteChildren {
+  AppConfiguracoesRoute: typeof AppConfiguracoesRoute
+  AppHistoricoRoute: typeof AppHistoricoRoute
+  AppJogosRoute: typeof AppJogosRoute
+  AppPalpitesRoute: typeof AppPalpitesRoute
+  AppParticipantesRoute: typeof AppParticipantesRoute
+  AppRankingRoute: typeof AppRankingRoute
   AppIndexRoute: typeof AppIndexRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
+  AppConfiguracoesRoute: AppConfiguracoesRoute,
+  AppHistoricoRoute: AppHistoricoRoute,
+  AppJogosRoute: AppJogosRoute,
+  AppPalpitesRoute: AppPalpitesRoute,
+  AppParticipantesRoute: AppParticipantesRoute,
+  AppRankingRoute: AppRankingRoute,
   AppIndexRoute: AppIndexRoute,
 }
 
