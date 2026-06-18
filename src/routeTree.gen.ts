@@ -10,8 +10,10 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AppRouteImport } from './routes/app'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppIndexRouteImport } from './routes/app.index'
+import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as BolaoEntrarRouteImport } from './routes/bolao.entrar'
 import { Route as BolaoCriarRouteImport } from './routes/bolao.criar'
 import { Route as AppRankingRouteImport } from './routes/app.ranking'
@@ -20,10 +22,17 @@ import { Route as AppPalpitesRouteImport } from './routes/app.palpites'
 import { Route as AppJogosRouteImport } from './routes/app.jogos'
 import { Route as AppHistoricoRouteImport } from './routes/app.historico'
 import { Route as AppConfiguracoesRouteImport } from './routes/app.configuracoes'
+import { Route as AdminSelecoesRouteImport } from './routes/admin.selecoes'
+import { Route as AdminPartidasRouteImport } from './routes/admin.partidas'
 
 const AppRoute = AppRouteImport.update({
   id: '/app',
   path: '/app',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -35,6 +44,11 @@ const AppIndexRoute = AppIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AppRoute,
+} as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminRoute,
 } as any)
 const BolaoEntrarRoute = BolaoEntrarRouteImport.update({
   id: '/bolao/entrar',
@@ -76,10 +90,23 @@ const AppConfiguracoesRoute = AppConfiguracoesRouteImport.update({
   path: '/configuracoes',
   getParentRoute: () => AppRoute,
 } as any)
+const AdminSelecoesRoute = AdminSelecoesRouteImport.update({
+  id: '/selecoes',
+  path: '/selecoes',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminPartidasRoute = AdminPartidasRouteImport.update({
+  id: '/partidas',
+  path: '/partidas',
+  getParentRoute: () => AdminRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRouteWithChildren
   '/app': typeof AppRouteWithChildren
+  '/admin/partidas': typeof AdminPartidasRoute
+  '/admin/selecoes': typeof AdminSelecoesRoute
   '/app/configuracoes': typeof AppConfiguracoesRoute
   '/app/historico': typeof AppHistoricoRoute
   '/app/jogos': typeof AppJogosRoute
@@ -88,10 +115,13 @@ export interface FileRoutesByFullPath {
   '/app/ranking': typeof AppRankingRoute
   '/bolao/criar': typeof BolaoCriarRoute
   '/bolao/entrar': typeof BolaoEntrarRoute
+  '/admin/': typeof AdminIndexRoute
   '/app/': typeof AppIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/admin/partidas': typeof AdminPartidasRoute
+  '/admin/selecoes': typeof AdminSelecoesRoute
   '/app/configuracoes': typeof AppConfiguracoesRoute
   '/app/historico': typeof AppHistoricoRoute
   '/app/jogos': typeof AppJogosRoute
@@ -100,12 +130,16 @@ export interface FileRoutesByTo {
   '/app/ranking': typeof AppRankingRoute
   '/bolao/criar': typeof BolaoCriarRoute
   '/bolao/entrar': typeof BolaoEntrarRoute
+  '/admin': typeof AdminIndexRoute
   '/app': typeof AppIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/admin': typeof AdminRouteWithChildren
   '/app': typeof AppRouteWithChildren
+  '/admin/partidas': typeof AdminPartidasRoute
+  '/admin/selecoes': typeof AdminSelecoesRoute
   '/app/configuracoes': typeof AppConfiguracoesRoute
   '/app/historico': typeof AppHistoricoRoute
   '/app/jogos': typeof AppJogosRoute
@@ -114,13 +148,17 @@ export interface FileRoutesById {
   '/app/ranking': typeof AppRankingRoute
   '/bolao/criar': typeof BolaoCriarRoute
   '/bolao/entrar': typeof BolaoEntrarRoute
+  '/admin/': typeof AdminIndexRoute
   '/app/': typeof AppIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/admin'
     | '/app'
+    | '/admin/partidas'
+    | '/admin/selecoes'
     | '/app/configuracoes'
     | '/app/historico'
     | '/app/jogos'
@@ -129,10 +167,13 @@ export interface FileRouteTypes {
     | '/app/ranking'
     | '/bolao/criar'
     | '/bolao/entrar'
+    | '/admin/'
     | '/app/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/admin/partidas'
+    | '/admin/selecoes'
     | '/app/configuracoes'
     | '/app/historico'
     | '/app/jogos'
@@ -141,11 +182,15 @@ export interface FileRouteTypes {
     | '/app/ranking'
     | '/bolao/criar'
     | '/bolao/entrar'
+    | '/admin'
     | '/app'
   id:
     | '__root__'
     | '/'
+    | '/admin'
     | '/app'
+    | '/admin/partidas'
+    | '/admin/selecoes'
     | '/app/configuracoes'
     | '/app/historico'
     | '/app/jogos'
@@ -154,11 +199,13 @@ export interface FileRouteTypes {
     | '/app/ranking'
     | '/bolao/criar'
     | '/bolao/entrar'
+    | '/admin/'
     | '/app/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdminRoute: typeof AdminRouteWithChildren
   AppRoute: typeof AppRouteWithChildren
   BolaoCriarRoute: typeof BolaoCriarRoute
   BolaoEntrarRoute: typeof BolaoEntrarRoute
@@ -171,6 +218,13 @@ declare module '@tanstack/react-router' {
       path: '/app'
       fullPath: '/app'
       preLoaderRoute: typeof AppRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -186,6 +240,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/app/'
       preLoaderRoute: typeof AppIndexRouteImport
       parentRoute: typeof AppRoute
+    }
+    '/admin/': {
+      id: '/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof AdminRoute
     }
     '/bolao/entrar': {
       id: '/bolao/entrar'
@@ -243,8 +304,36 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppConfiguracoesRouteImport
       parentRoute: typeof AppRoute
     }
+    '/admin/selecoes': {
+      id: '/admin/selecoes'
+      path: '/selecoes'
+      fullPath: '/admin/selecoes'
+      preLoaderRoute: typeof AdminSelecoesRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/partidas': {
+      id: '/admin/partidas'
+      path: '/partidas'
+      fullPath: '/admin/partidas'
+      preLoaderRoute: typeof AdminPartidasRouteImport
+      parentRoute: typeof AdminRoute
+    }
   }
 }
+
+interface AdminRouteChildren {
+  AdminPartidasRoute: typeof AdminPartidasRoute
+  AdminSelecoesRoute: typeof AdminSelecoesRoute
+  AdminIndexRoute: typeof AdminIndexRoute
+}
+
+const AdminRouteChildren: AdminRouteChildren = {
+  AdminPartidasRoute: AdminPartidasRoute,
+  AdminSelecoesRoute: AdminSelecoesRoute,
+  AdminIndexRoute: AdminIndexRoute,
+}
+
+const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
 interface AppRouteChildren {
   AppConfiguracoesRoute: typeof AppConfiguracoesRoute
@@ -270,6 +359,7 @@ const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdminRoute: AdminRouteWithChildren,
   AppRoute: AppRouteWithChildren,
   BolaoCriarRoute: BolaoCriarRoute,
   BolaoEntrarRoute: BolaoEntrarRoute,
