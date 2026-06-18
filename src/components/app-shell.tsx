@@ -97,46 +97,60 @@ export function AppShell({ children }: { children: ReactNode }) {
       </header>
 
       {/* Mobile drawer */}
-      {drawer && (
-        <div className="fixed inset-0 z-40 lg:hidden">
-          <div className="absolute inset-0 bg-black/60" onClick={() => setDrawer(false)} />
-          <div className="absolute left-0 top-0 h-full w-72 bg-sidebar p-5 shadow-2xl">
-            <div className="flex items-center justify-between">
-              <span className="font-display font-semibold">Menu</span>
-              <button onClick={() => setDrawer(false)} className="grid h-8 w-8 place-items-center rounded-lg bg-surface">
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-            <nav className="mt-6 space-y-1">
-              {navItems.map((item) => {
-                const Icon = item.icon;
-                const active = pathname === item.to;
-                return (
-                  <Link
-                    key={item.to}
-                    to={item.to}
-                    onClick={() => setDrawer(false)}
-                    className={cn(
-                      "flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium",
-                      active ? "bg-primary/15 text-primary" : "text-sidebar-foreground hover:bg-sidebar-accent",
-                    )}
-                  >
-                    <Icon className="h-4.5 w-4.5" />
-                    {item.label}
-                  </Link>
-                );
-              })}
-              <Link
-                to="/admin/selecoes"
-                onClick={() => setDrawer(false)}
-                className="mt-4 flex items-center gap-3 rounded-xl border border-border px-3 py-3 text-sm font-medium text-muted-foreground"
-              >
-                <Wrench className="h-4.5 w-4.5" /> Admin
-              </Link>
-            </nav>
+      <div
+        className={cn(
+          "fixed inset-0 z-40 lg:hidden transition-all",
+          drawer ? "pointer-events-auto" : "pointer-events-none",
+        )}
+      >
+        <div
+          className={cn(
+            "absolute inset-0 bg-black/60 transition-opacity duration-300",
+            drawer ? "opacity-100" : "opacity-0",
+          )}
+          onClick={() => setDrawer(false)}
+        />
+        <div
+          className={cn(
+            "absolute left-0 top-0 h-full w-72 bg-sidebar p-5 shadow-2xl transition-transform duration-300 ease-out",
+            drawer ? "translate-x-0" : "-translate-x-full",
+          )}
+        >
+          <div className="flex items-center justify-between">
+            <span className="font-display font-semibold">Menu</span>
+            <button onClick={() => setDrawer(false)} className="grid h-8 w-8 place-items-center rounded-lg bg-surface">
+              <X className="h-4 w-4" />
+            </button>
           </div>
+          <nav className="mt-6 space-y-1">
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              const active = pathname === item.to;
+              return (
+                <Link
+                  key={item.to}
+                  to={item.to}
+                  onClick={() => setDrawer(false)}
+                  className={cn(
+                    "flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium",
+                    active ? "bg-primary/15 text-primary" : "text-sidebar-foreground hover:bg-sidebar-accent",
+                  )}
+                >
+                  <Icon className="h-4.5 w-4.5" />
+                  {item.label}
+                </Link>
+              );
+            })}
+            <Link
+              to="/admin/selecoes"
+              onClick={() => setDrawer(false)}
+              className="mt-4 flex items-center gap-3 rounded-xl border border-border px-3 py-3 text-sm font-medium text-muted-foreground"
+            >
+              <Wrench className="h-4.5 w-4.5" /> Admin
+            </Link>
+          </nav>
         </div>
-      )}
+      </div>
 
       {/* Content */}
       <div className="lg:pl-64">
