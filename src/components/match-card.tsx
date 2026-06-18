@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Lock, Check, Clock, CircleDot } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { NumericInput } from "@/components/ui/numeric-input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -123,24 +124,18 @@ export function MatchCard({ match }: { match: Partida }) {
             </div>
           ) : (
             <div className="flex shrink-0 items-center gap-1.5 px-1">
-              <Input
-                type="number"
-                inputMode="numeric"
-                min={0}
-                max={20}
+              <NumericInput
+                maxLength={2}
                 value={h}
-                onChange={(e) => setH(e.target.value)}
+                onChange={setH}
                 className="h-11 w-12 text-center text-lg font-bold tabular-nums sm:w-14"
                 placeholder="-"
               />
               <span className="text-sm text-muted-foreground">×</span>
-              <Input
-                type="number"
-                inputMode="numeric"
-                min={0}
-                max={20}
+              <NumericInput
+                maxLength={2}
                 value={a}
-                onChange={(e) => setA(e.target.value)}
+                onChange={setA}
                 className="h-11 w-12 text-center text-lg font-bold tabular-nums sm:w-14"
                 placeholder="-"
               />
