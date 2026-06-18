@@ -79,14 +79,14 @@ function RankingPage() {
         })}
       </div>
 
-      <div className="overflow-hidden rounded-2xl border border-border bg-card">
-        <table className="w-full text-sm">
+      <div className="overflow-x-auto rounded-2xl border border-border bg-card">
+        <table className="w-full min-w-[320px] text-sm">
           <thead className="bg-surface text-xs uppercase tracking-wider text-muted-foreground">
             <tr>
-              <th className="px-4 py-3 text-left">#</th>
-              <th className="px-4 py-3 text-left">Participante</th>
-              <th className="px-4 py-3 text-right">Acertos</th>
-              <th className="px-4 py-3 text-right">Pontos</th>
+              <th className="px-3 py-3 text-left sm:px-4">#</th>
+              <th className="px-3 py-3 text-left sm:px-4">Participante</th>
+              <th className="px-3 py-3 text-right sm:px-4">Acertos</th>
+              <th className="px-3 py-3 text-right sm:px-4">Pontos</th>
             </tr>
           </thead>
           <tbody>
@@ -101,24 +101,24 @@ function RankingPage() {
                     isMe && "bg-primary/5",
                   )}
                 >
-                  <td className="px-4 py-3 font-display font-semibold tabular-nums text-muted-foreground">
+                  <td className="px-3 py-3 font-display font-semibold tabular-nums text-muted-foreground sm:px-4">
                     {i + 4}
                   </td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-2.5">
-                      <div className="grid h-8 w-8 place-items-center rounded-full bg-secondary text-[11px] font-bold text-primary">
+                  <td className="px-3 py-3 sm:px-4">
+                    <div className="flex items-center gap-2 sm:gap-2.5">
+                      <div className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-secondary text-[11px] font-bold text-primary">
                         {row.participante.nome.split(" ").map((s) => s[0]).slice(0, 2).join("")}
                       </div>
-                      <span className="font-medium">
+                      <span className="truncate font-medium">
                         {row.participante.nome}
                         {isMe && <span className="ml-1 text-[10px] text-primary">(você)</span>}
                       </span>
                     </div>
                   </td>
-                  <td className="px-4 py-3 text-right tabular-nums text-muted-foreground">
+                  <td className="px-3 py-3 text-right tabular-nums text-muted-foreground sm:px-4">
                     {row.acertos}
                   </td>
-                  <td className="px-4 py-3 text-right font-display font-bold tabular-nums text-primary">
+                  <td className="px-3 py-3 text-right font-display font-bold tabular-nums text-primary sm:px-4">
                     {row.pontos}
                   </td>
                 </tr>
