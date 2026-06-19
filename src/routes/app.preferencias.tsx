@@ -42,11 +42,6 @@ const NOTIFICATION_TYPES: { type: string; label: string; help: string }[] = [
     help: "Antes do início de partidas que ainda esperam seu palpite.",
   },
   {
-    type: "ranking_update",
-    label: "Ranking atualizado",
-    help: "Quando o ranking do seu bolão muda.",
-  },
-  {
     type: "member_joined",
     label: "Novo participante",
     help: "Quando alguém entra em um bolão que você administra.",

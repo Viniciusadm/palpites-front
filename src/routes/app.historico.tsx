@@ -155,7 +155,7 @@ function HistoryPage() {
                 Nenhum palpite encerrado ainda.
               </p>
             ) : (
-              <ul className="space-y-2">
+              <ul className="space-y-2 m-2">
                 {past.map((e) => {
                   const { home, away } = teamsFor(e.match_id);
                   const pts = e.points_awarded ?? 0;
