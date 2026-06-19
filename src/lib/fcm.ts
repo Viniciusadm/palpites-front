@@ -66,7 +66,10 @@ export async function initPushNotifications(onForegroundMessage?: () => void): P
       messagingSenderId: firebaseConfig.messagingSenderId ?? "",
       appId: firebaseConfig.appId ?? "",
     }).toString()}`;
-    const registration = await navigator.serviceWorker.register(swUrl);
+
+    const registration = await navigator.serviceWorker.register(swUrl, {
+      scope: "/firebase-cloud-messaging-push-scope",
+    });
 
     const token = await getToken(fcm, {
       vapidKey,

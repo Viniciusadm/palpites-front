@@ -12,7 +12,7 @@ export default defineConfig({
     tailwindcss(),
     tsConfigPaths(),
     VitePWA({
-      registerType: "autoUpdate",
+      registerType: "prompt",
       injectRegister: null,
       manifest: false,
       includeAssets: [
