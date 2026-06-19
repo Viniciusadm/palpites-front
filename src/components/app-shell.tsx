@@ -10,7 +10,7 @@ import {
   Menu,
   X,
   LogOut,
-  Bell,
+  SlidersHorizontal,
 } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -30,7 +30,7 @@ const navItems = [
   { to: "/app/ranking", label: "Ranking", icon: Trophy },
   { to: "/app/historico", label: "Histórico", icon: History },
   { to: "/app/participantes", label: "Participantes", icon: Users },
-  { to: "/app/preferencias", label: "Preferências", icon: Bell },
+  { to: "/app/preferencias", label: "Preferências", icon: SlidersHorizontal },
   { to: "/app/configuracoes", label: "Configurações", icon: Settings },
 ] as const;
 
