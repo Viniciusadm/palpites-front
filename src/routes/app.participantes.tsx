@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useMembers, usePools, useRemoveMember } from "@/api/pools";
+import { buildInviteUrl } from "@/lib/invite";
 import { useAuthStore } from "@/store/auth-store";
 
 export const Route = createFileRoute("/app/participantes")({
@@ -23,8 +24,8 @@ function ParticipantesPage() {
   const isOwner = me?.role === "owner";
 
   const copy = async () => {
-    await navigator.clipboard.writeText(inviteCode);
-    toast.success("Código de convite copiado!");
+    await navigator.clipboard.writeText(buildInviteUrl(inviteCode));
+    toast.success("Link de convite copiado!");
   };
 
   const remove = (memberId: string, nome: string) => {
@@ -46,7 +47,7 @@ function ParticipantesPage() {
         </div>
         {isOwner && inviteCode && (
           <Button onClick={copy} className="gold-gradient text-primary-foreground hover:opacity-90">
-            <Copy className="mr-1.5 h-4 w-4" /> Copiar convite
+            <Copy className="mr-1.5 h-4 w-4" /> Copiar link
           </Button>
         )}
       </header>

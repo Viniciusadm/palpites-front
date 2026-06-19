@@ -7,12 +7,18 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useJoinPool } from "@/api/pools";
 import { getToken } from "@/api/session";
+import { clearPendingInvite, getPendingInvite, setPendingInvite } from "@/lib/invite";
 import { useAuthStore } from "@/store/auth-store";
 
 export const Route = createFileRoute("/bolao/entrar")({
   head: () => ({ meta: [{ title: "Entrar em bolão — Bolão Copa" }] }),
-  beforeLoad: () => {
-    if (typeof window !== "undefined" && !getToken()) {
+  validateSearch: (s): { code?: string } => ({
+    code: typeof s.code === "string" ? s.code : undefined,
+  }),
+  beforeLoad: ({ search }) => {
+    if (typeof window === "undefined") return;
+    if (search.code) setPendingInvite(search.code);
+    if (!getToken()) {
       throw redirect({ to: "/login" });
     }
   },
@@ -20,7 +26,8 @@ export const Route = createFileRoute("/bolao/entrar")({
 });
 
 function EntrarBolao() {
-  const [code, setCode] = useState("");
+  const search = Route.useSearch();
+  const [code, setCode] = useState(search.code ?? getPendingInvite() ?? "");
   const navigate = useNavigate();
   const setPoolId = useAuthStore((s) => s.setPoolId);
   const joinPool = useJoinPool();
@@ -33,6 +40,7 @@ function EntrarBolao() {
     joinPool.mutate(code.trim(), {
       onSuccess: (res) => {
         setPoolId(res.pool.id);
+        clearPendingInvite();
         toast.success(res.already_member ? "Você já participa deste bolão" : "Bem-vindo ao bolão!");
         navigate({ to: "/app/palpites" });
       },

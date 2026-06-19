@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Trophy, Users, Sparkles, ArrowRight } from "lucide-react";
+import { Trophy, Users, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/")({
@@ -38,7 +38,6 @@ function Landing() {
 
       <section className="relative z-10 mx-auto max-w-6xl px-6 pt-12 pb-20 text-center sm:pt-20">
         <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
-          <Sparkles className="h-3.5 w-3.5" />
           Copa do Mundo 2026
         </div>
         <h1 className="mt-6 font-display text-4xl font-bold leading-tight sm:text-6xl">
@@ -83,12 +82,6 @@ function Landing() {
               </div>
             </div>
           </Link>
-        </div>
-
-        <div className="mt-12 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-xs text-muted-foreground">
-          <div>⚡ Atualizações em tempo real</div>
-          <div>🏆 Ranking automático</div>
-          <div>📱 Funciona no celular</div>
         </div>
       </section>
     </main>

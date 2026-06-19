@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useRegister } from "@/api/auth";
 import { setToken } from "@/api/session";
+import { getPendingInvite } from "@/lib/invite";
 import { useAuthStore } from "@/store/auth-store";
 
 export const Route = createFileRoute("/register")({
@@ -39,7 +40,8 @@ function RegisterPage() {
       const res = await mutateAsync(values);
       setToken(res.access_token);
       setSession({ userId: res.user_id, displayName: res.display_name });
-      navigate({ to: "/app/historico" });
+      const pending = getPendingInvite();
+      navigate({ to: pending ? "/bolao/entrar" : "/app/historico" });
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Não foi possível criar a conta");
     }

@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useCreatePool } from "@/api/pools";
 import { getToken } from "@/api/session";
+import { buildInviteUrl } from "@/lib/invite";
 import { useAuthStore } from "@/store/auth-store";
 
 export const Route = createFileRoute("/bolao/criar")({
@@ -51,9 +52,9 @@ function CriarBolao() {
   const copyCode = async () => {
     if (!inviteCode) return;
     try {
-      await navigator.clipboard.writeText(inviteCode);
+      await navigator.clipboard.writeText(buildInviteUrl(inviteCode));
       setCopied(true);
-      toast.success("Código copiado!");
+      toast.success("Link copiado!");
       setTimeout(() => setCopied(false), 2000);
     } catch {
       toast.error("Não foi possível copiar");
@@ -107,15 +108,13 @@ function CriarBolao() {
             </div>
             <div>
               <h2 className="font-display text-xl font-bold">Pronto! "{nome}" está no ar</h2>
-              <p className="text-sm text-muted-foreground">
-                Compartilhe o código de convite abaixo
-              </p>
+              <p className="text-sm text-muted-foreground">Compartilhe o link de convite abaixo</p>
             </div>
           </div>
 
           <div className="mt-6 flex items-center gap-2 rounded-2xl border border-border bg-input p-2">
             <code className="flex-1 truncate px-3 text-sm font-semibold tracking-wider text-foreground">
-              {inviteCode}
+              {buildInviteUrl(inviteCode)}
             </code>
             <Button
               onClick={copyCode}
