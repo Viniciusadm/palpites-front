@@ -216,12 +216,10 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
       </div>
 
-      {/* Content */}
       <div className="lg:pl-64">
-        <main className="mx-auto max-w-5xl px-4 pb-28 pt-6 sm:px-6 lg:pb-12">{children}</main>
+        <main className="mx-auto max-w-5xl px-4 pb-20 pt-6 sm:px-6 lg:pb-12">{children}</main>
       </div>
 
-      {/* Mobile bottom nav */}
       <nav className="fixed inset-x-0 bottom-0 z-20 border-t border-border bg-background/95 backdrop-blur lg:hidden">
         <div className="mx-auto grid max-w-md grid-cols-4">
           {mobileNav.map((item) => {

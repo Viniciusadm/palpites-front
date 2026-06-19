@@ -79,7 +79,7 @@ export function MatchCard({
       {canEnterResult && (
         <Link
           to="/admin/partidas"
-          className="group mb-2 flex items-center gap-2.5 rounded-xl border border-primary/40 bg-primary/10 px-3 py-2.5 text-xs font-medium text-primary transition-colors hover:bg-primary/15"
+          className="group flex items-center gap-2.5 rounded-xl border border-primary/40 bg-primary/10 px-3 py-2.5 text-xs font-medium text-primary transition-colors hover:bg-primary/15"
         >
           <span className="relative flex h-2 w-2 shrink-0">
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75" />
