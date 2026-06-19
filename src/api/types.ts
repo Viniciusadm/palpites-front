@@ -121,7 +121,12 @@ export interface MeResponse {
     display_name: string;
     email: string;
     role: string;
+    sync_predictions_across_pools: boolean;
   };
+}
+
+export interface UpdateUserPreferencesRequest {
+  sync_predictions_across_pools: boolean;
 }
 
 export interface PoolResponse {

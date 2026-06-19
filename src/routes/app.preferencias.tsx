@@ -1,9 +1,10 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Bell, BellRing } from "lucide-react";
+import { Bell, BellRing, Copy } from "lucide-react";
 import { toast } from "sonner";
 import { Switch } from "@/components/ui/switch";
 import { getToken } from "@/api/session";
+import { useMe, useUpdateUserPreferences } from "@/api/auth";
 import {
   useGlobalNotificationPreferences,
   useUpdateGlobalNotificationPreferences,
@@ -61,14 +62,40 @@ function PreferencesPage() {
   const supported = pushSupported();
   const prefs = useGlobalNotificationPreferences();
   const updatePrefs = useUpdateGlobalNotificationPreferences();
+  const me = useMe();
+  const updateUserPrefs = useUpdateUserPreferences();
 
   const [pushOn, setPushOn] = useState(false);
   const [pushBusy, setPushBusy] = useState(false);
   const [enabledByType, setEnabledByType] = useState<Record<string, boolean>>({});
+  const [syncPredictions, setSyncPredictions] = useState(true);
 
   useEffect(() => {
     setPushOn(masterEnabled());
   }, []);
+
+  useEffect(() => {
+    if (me.data) {
+      setSyncPredictions(me.data.user.sync_predictions_across_pools);
+    }
+  }, [me.data]);
+
+  const toggleSyncPredictions = (next: boolean) => {
+    if (!online) {
+      toast.error("Sem conexão. Conecte-se para realizar esta ação.");
+      return;
+    }
+    setSyncPredictions(next);
+    updateUserPrefs.mutate(
+      { sync_predictions_across_pools: next },
+      {
+        onError: (error) => {
+          setSyncPredictions(!next);
+          toast.error(error instanceof Error ? error.message : "Não foi possível atualizar");
+        },
+      },
+    );
+  };
 
   // Backend defaults to enabled when no row exists, so mirror that here.
   useEffect(() => {
@@ -138,6 +165,31 @@ function PreferencesPage() {
       </header>
 
       <div className="space-y-4">
+        <div className="rounded-2xl border border-border bg-card p-5">
+          <h2 className="flex items-center gap-2 font-display text-base font-semibold">
+            <Copy className="h-4 w-4 text-muted-foreground" />
+            Palpites
+          </h2>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Reaproveite seus palpites entre os bolões que você participa.
+          </p>
+
+          <div className="mt-4 flex items-center justify-between gap-3 rounded-xl bg-surface px-3 py-2.5">
+            <div className="min-w-0">
+              <p className="text-sm">Usar o mesmo palpite em todos os bolões</p>
+              <p className="text-xs text-muted-foreground">
+                Ao salvar um palpite, ele é copiado para seus outros bolões do mesmo campeonato que
+                ainda estiverem abertos.
+              </p>
+            </div>
+            <Switch
+              checked={syncPredictions}
+              onCheckedChange={toggleSyncPredictions}
+              disabled={me.isPending || updateUserPrefs.isPending || !online}
+            />
+          </div>
+        </div>
+
         <div className="rounded-2xl border border-border bg-card p-5">
           <h2 className="flex items-center gap-2 font-display text-base font-semibold">
             <BellRing className="h-4 w-4 text-muted-foreground" />
