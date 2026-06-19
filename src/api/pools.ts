@@ -189,11 +189,11 @@ export async function getAllowedEmails(poolId: string): Promise<AllowedEmail[]> 
   return res.data.emails;
 }
 
-export function useAllowedEmails(poolId: string) {
+export function useAllowedEmails(poolId: string, enabled = true) {
   return useQuery({
     queryKey: ["allowed-emails", poolId],
     queryFn: () => getAllowedEmails(poolId),
-    enabled: Boolean(getToken() && poolId),
+    enabled: Boolean(getToken() && poolId && enabled),
   });
 }
 

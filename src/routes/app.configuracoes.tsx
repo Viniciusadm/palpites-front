@@ -95,7 +95,7 @@ function SettingsPage() {
   const updatePrefs = useUpdateNotificationPreferences(poolId);
   const scoringRules = useScoringRules(poolId);
   const updateScoring = useUpdateScoringRules(poolId);
-  const allowedEmails = useAllowedEmails(poolId);
+  const allowedEmails = useAllowedEmails(poolId, isOwner);
   const addAllowedEmail = useAddAllowedEmail(poolId);
   const removeAllowedEmail = useRemoveAllowedEmail(poolId);
 
