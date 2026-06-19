@@ -14,6 +14,7 @@ import { persistOptions } from "../lib/query-persister";
 import { registerServiceWorker } from "../lib/pwa";
 import { Toaster } from "@/components/ui/sonner";
 import { OfflineBanner } from "@/components/offline-banner";
+import { RefreshIndicator } from "@/components/refresh-indicator";
 
 function NotFoundComponent() {
   return (
@@ -115,6 +116,7 @@ function RootComponent() {
   return (
     <PersistQueryClientProvider client={queryClient} persistOptions={persistOptions}>
       <HeadContent />
+      <RefreshIndicator />
       <OfflineBanner />
       <Outlet />
       <Toaster theme="dark" position="top-center" />

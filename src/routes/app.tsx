@@ -50,7 +50,7 @@ function AppLayout() {
     }
   }, [pools.isSuccess, pools.data, navigate]);
 
-  if (pools.isPending || !poolId) {
+  if (!poolId) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
         <p className="text-sm text-muted-foreground">Carregando seu bolão...</p>
