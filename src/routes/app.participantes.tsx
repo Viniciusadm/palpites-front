@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Copy, UserMinus, Users } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { formatDateBR } from "@/lib/datetime";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useMembers, usePools, useRemoveMember } from "@/api/pools";
 import { buildInviteUrl } from "@/lib/invite";
@@ -113,11 +114,7 @@ function ParticipantesPage() {
                     </span>
                     <span>·</span>
                     <span>
-                      Entrou em{" "}
-                      {new Date(p.joined_at).toLocaleDateString("pt-BR", {
-                        day: "2-digit",
-                        month: "short",
-                      })}
+                      Entrou em {formatDateBR(p.joined_at, { day: "2-digit", month: "short" })}
                     </span>
                   </div>
                 </div>

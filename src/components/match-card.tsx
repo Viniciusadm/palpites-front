@@ -5,6 +5,7 @@ import { NumericInput } from "@/components/ui/numeric-input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { formatMatchDate, formatMatchTime } from "@/lib/datetime";
 import { toast } from "sonner";
 import { useOnline } from "@/hooks/use-online";
 import { type Partida, type Selecao } from "@/api/types";
@@ -51,7 +52,9 @@ export function TeamSide({
       )}
     >
       <span className="text-2xl leading-none sm:text-3xl">{flag}</span>
-      <span className="min-w-0 truncate text-sm font-semibold sm:text-base">{name}</span>
+      <span className="min-w-0 break-words text-sm font-semibold leading-tight sm:text-base">
+        {name}
+      </span>
     </div>
   );
 }
@@ -100,15 +103,8 @@ export function MatchCard({
     onSave?.(hn, an);
   };
 
-  const dateStr = date.toLocaleDateString("pt-BR", {
-    weekday: "short",
-    day: "2-digit",
-    month: "short",
-  });
-  const timeStr = date.toLocaleTimeString("pt-BR", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  const dateStr = formatMatchDate(match.date);
+  const timeStr = formatMatchTime(match.date);
 
   return (
     <article
@@ -129,11 +125,11 @@ export function MatchCard({
       </header>
 
       <div className="px-4 py-5">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           <TeamSide flag={home.flag} name={home.nome} align="left" />
 
           {locked ? (
-            <div className="flex shrink-0 items-center gap-1 px-2">
+            <div className="flex shrink-0 items-center gap-1 px-1">
               <span className="font-display text-2xl font-bold tabular-nums sm:text-3xl">
                 {match.homeScore ?? "–"}
               </span>
@@ -143,20 +139,20 @@ export function MatchCard({
               </span>
             </div>
           ) : (
-            <div className="flex shrink-0 items-center gap-1.5 px-1">
+            <div className="flex shrink-0 items-center gap-1 px-0.5">
               <NumericInput
-                maxLength={2}
+                maxLength={1}
                 value={h}
                 onChange={setH}
-                className="h-11 w-12 text-center text-lg font-bold tabular-nums sm:w-14"
+                className="h-11 w-9 text-center text-lg font-bold tabular-nums sm:w-10"
                 placeholder="-"
               />
               <span className="text-sm text-muted-foreground">×</span>
               <NumericInput
-                maxLength={2}
+                maxLength={1}
                 value={a}
                 onChange={setA}
-                className="h-11 w-12 text-center text-lg font-bold tabular-nums sm:w-14"
+                className="h-11 w-9 text-center text-lg font-bold tabular-nums sm:w-10"
                 placeholder="-"
               />
             </div>

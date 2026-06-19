@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import { CalendarX } from "lucide-react";
 import { toast } from "sonner";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { formatGroupDate } from "@/lib/datetime";
 import { Skeleton } from "@/components/ui/skeleton";
 import { MatchCard } from "@/components/match-card";
 import { useMatches } from "@/api/matches";
@@ -72,11 +73,7 @@ function PalpitesPage() {
     [...filtered]
       .sort((a, b) => +new Date(a.date) - +new Date(b.date))
       .forEach((m) => {
-        const key = new Date(m.date).toLocaleDateString("pt-BR", {
-          weekday: "long",
-          day: "2-digit",
-          month: "long",
-        });
+        const key = formatGroupDate(m.date);
         if (!map.has(key)) map.set(key, []);
         map.get(key)!.push(m);
       });

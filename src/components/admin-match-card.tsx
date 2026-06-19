@@ -3,6 +3,7 @@ import { Lock, Pencil, Trash2 } from "lucide-react";
 import { NumericInput } from "@/components/ui/numeric-input";
 import { Button } from "@/components/ui/button";
 import { StatusBadge, TeamSide } from "@/components/match-card";
+import { formatMatchDate, formatMatchTime } from "@/lib/datetime";
 import { toast } from "sonner";
 import type { MatchResponse } from "@/api/types";
 
@@ -33,13 +34,8 @@ export function AdminMatchCard({
   const noTeams = !match.home_team_id || !match.away_team_id;
   const hasResult = match.home_score !== null && match.away_score !== null;
 
-  const date = new Date(match.kickoff_at);
-  const dateStr = date.toLocaleDateString("pt-BR", {
-    weekday: "short",
-    day: "2-digit",
-    month: "short",
-  });
-  const timeStr = date.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+  const dateStr = formatMatchDate(match.kickoff_at);
+  const timeStr = formatMatchTime(match.kickoff_at);
 
   const save = () => {
     const hn = parseInt(h, 10);

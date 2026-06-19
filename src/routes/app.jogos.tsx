@@ -7,6 +7,7 @@ import { useTeams } from "@/api/teams";
 import { useMatches } from "@/api/matches";
 import { useTournamentDetail } from "@/api/tournaments";
 import { matchToPartida, teamToSelecao } from "@/api/adapters";
+import { formatGroupDate } from "@/lib/datetime";
 import type { Selecao } from "@/api/types";
 
 export const Route = createFileRoute("/app/jogos")({
@@ -43,11 +44,7 @@ function JogosPage() {
     [...partidas]
       .sort((a, b) => +new Date(a.date) - +new Date(b.date))
       .forEach((m) => {
-        const key = new Date(m.date).toLocaleDateString("pt-BR", {
-          weekday: "long",
-          day: "2-digit",
-          month: "long",
-        });
+        const key = formatGroupDate(m.date);
         if (!map.has(key)) map.set(key, []);
         map.get(key)!.push(m);
       });

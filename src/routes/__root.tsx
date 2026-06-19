@@ -11,7 +11,7 @@ import { useEffect } from "react";
 
 import appCss from "../styles.css?url";
 import { persistOptions } from "../lib/query-persister";
-import { registerServiceWorker } from "../lib/register-sw";
+import { registerServiceWorker } from "../lib/pwa";
 import { Toaster } from "@/components/ui/sonner";
 import { OfflineBanner } from "@/components/offline-banner";
 

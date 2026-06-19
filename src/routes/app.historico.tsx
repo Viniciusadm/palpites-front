@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMemo } from "react";
 import { Check, X, Clock, TrendingUp } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { formatDateBR } from "@/lib/datetime";
 import { useHistory } from "@/api/history";
 import { useMatches } from "@/api/matches";
 import { useTeams } from "@/api/teams";
@@ -132,10 +133,7 @@ function HistoricoPage() {
                       className="flex items-center gap-3 rounded-xl border border-border bg-card p-3 text-sm"
                     >
                       <span className="rounded-md bg-primary/15 px-2 py-0.5 text-[10px] font-semibold text-primary">
-                        {new Date(e.kickoff_at).toLocaleDateString("pt-BR", {
-                          day: "2-digit",
-                          month: "short",
-                        })}
+                        {formatDateBR(e.kickoff_at, { day: "2-digit", month: "short" })}
                       </span>
                       <span className="flex-1 truncate">
                         {home.flag} {home.nome} <span className="text-muted-foreground">vs</span>{" "}

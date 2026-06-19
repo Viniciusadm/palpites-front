@@ -32,6 +32,7 @@ import {
   useEnterResult,
 } from "@/api/matches";
 import type { MatchResponse, MatchStatus, TeamResponse } from "@/api/types";
+import { brasiliaInputToIso, formatGroupDate, isoToBrasiliaInput } from "@/lib/datetime";
 
 export const Route = createFileRoute("/admin/partidas")({
   head: () => ({ meta: [{ title: "Admin · Partidas" }] }),
@@ -39,12 +40,6 @@ export const Route = createFileRoute("/admin/partidas")({
 });
 
 const tournamentId = import.meta.env.VITE_TOURNAMENT_ID;
-
-function toLocalInput(iso: string) {
-  const d = new Date(iso);
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-}
 
 function PartidasAdmin() {
   const online = useOnline();
@@ -62,7 +57,7 @@ function PartidasAdmin() {
     stageId: "",
     homeId: "",
     awayId: "",
-    date: toLocalInput(new Date().toISOString()),
+    date: isoToBrasiliaInput(new Date().toISOString()),
     status: "scheduled" as MatchStatus,
   });
 
@@ -91,18 +86,23 @@ function PartidasAdmin() {
   const groupedByDate = useMemo(() => {
     const map = new Map<string, MatchResponse[]>();
     [...(matches.data ?? [])]
+      .filter((m) => m.status !== "finished")
       .sort((a, b) => +new Date(a.kickoff_at) - +new Date(b.kickoff_at))
       .forEach((m) => {
-        const key = new Date(m.kickoff_at).toLocaleDateString("pt-BR", {
-          weekday: "long",
-          day: "2-digit",
-          month: "long",
-        });
+        const key = formatGroupDate(m.kickoff_at);
         if (!map.has(key)) map.set(key, []);
         map.get(key)!.push(m);
       });
     return Array.from(map.entries());
   }, [matches.data]);
+
+  const finishedMatches = useMemo(
+    () =>
+      [...(matches.data ?? [])]
+        .filter((m) => m.status === "finished")
+        .sort((a, b) => +new Date(a.kickoff_at) - +new Date(b.kickoff_at)),
+    [matches.data],
+  );
 
   const submitResult = (m: MatchResponse, home: number, away: number) => {
     if (!online) {
@@ -125,7 +125,7 @@ function PartidasAdmin() {
       stageId: stages[0]?.id ?? "",
       homeId: teamList[0]?.id ?? "",
       awayId: teamList[1]?.id ?? "",
-      date: toLocalInput(new Date().toISOString()),
+      date: isoToBrasiliaInput(new Date().toISOString()),
       status: "scheduled",
     });
     setOpen(true);
@@ -136,7 +136,7 @@ function PartidasAdmin() {
       stageId: m.stage_id,
       homeId: m.home_team_id ?? "",
       awayId: m.away_team_id ?? "",
-      date: toLocalInput(m.kickoff_at),
+      date: isoToBrasiliaInput(m.kickoff_at),
       status: m.status,
     });
     setOpen(true);
@@ -147,7 +147,7 @@ function PartidasAdmin() {
     if (!form.stageId) return toast.error("Escolha a fase");
     if (!form.homeId || !form.awayId) return toast.error("Escolha as seleções");
     if (form.homeId === form.awayId) return toast.error("Seleções devem ser diferentes");
-    const kickoff_at = new Date(form.date).toISOString();
+    const kickoff_at = brasiliaInputToIso(form.date);
     const opts = {
       onSuccess: () => {
         toast.success(editing ? "Partida atualizada" : "Partida criada");
@@ -260,6 +260,30 @@ function PartidasAdmin() {
               </div>
             </section>
           ))}
+
+          {finishedMatches.length > 0 && (
+            <section>
+              <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Encerradas
+              </h2>
+              <div className="grid gap-3 sm:grid-cols-2">
+                {finishedMatches.map((m) => (
+                  <AdminMatchCard
+                    key={m.id}
+                    match={m}
+                    home={teamInfo(m.home_team_id)}
+                    away={teamInfo(m.away_team_id)}
+                    fase={stageNameById.get(m.stage_id) ?? ""}
+                    onEnterResult={(home, away) => submitResult(m, home, away)}
+                    savingResult={enterResult.isPending || !online}
+                    onEdit={() => startEdit(m)}
+                    onRemove={() => remove(m)}
+                    removing={deleteMatch.isPending || !online}
+                  />
+                ))}
+              </div>
+            </section>
+          )}
         </div>
       )}
 
