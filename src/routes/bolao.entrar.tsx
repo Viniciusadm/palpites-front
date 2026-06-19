@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { useJoinPool } from "@/api/pools";
 import { getToken } from "@/api/session";
 import { clearPendingInvite, getPendingInvite, setPendingInvite } from "@/lib/invite";
+import { useOnline } from "@/hooks/use-online";
 import { useAuthStore } from "@/store/auth-store";
 
 export const Route = createFileRoute("/bolao/entrar")({
@@ -30,9 +31,14 @@ function EntrarBolao() {
   const [code, setCode] = useState(search.code ?? getPendingInvite() ?? "");
   const navigate = useNavigate();
   const setPoolId = useAuthStore((s) => s.setPoolId);
+  const online = useOnline();
   const joinPool = useJoinPool();
 
   const handleJoin = () => {
+    if (!online) {
+      toast.error("Sem conexão. Conecte-se para realizar esta ação.");
+      return;
+    }
     if (!code.trim()) {
       toast.error("Informe o código do bolão");
       return;
@@ -81,7 +87,7 @@ function EntrarBolao() {
 
         <Button
           onClick={handleJoin}
-          disabled={joinPool.isPending}
+          disabled={joinPool.isPending || !online}
           className="mt-6 h-12 w-full gold-gradient text-base font-semibold text-primary-foreground hover:opacity-90"
         >
           {joinPool.isPending ? "Entrando..." : "Entrar no bolão"}

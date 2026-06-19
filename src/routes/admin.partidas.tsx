@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { Plus, Pencil, Trash2 } from "lucide-react";
+import { CalendarX, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { AdminMatchCard } from "@/components/admin-match-card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -20,9 +21,16 @@ import {
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
+import { useOnline } from "@/hooks/use-online";
 import { useTeams } from "@/api/teams";
 import { useTournamentDetail } from "@/api/tournaments";
-import { useMatches, useCreateMatch, useUpdateMatch, useDeleteMatch } from "@/api/matches";
+import {
+  useMatches,
+  useCreateMatch,
+  useUpdateMatch,
+  useDeleteMatch,
+  useEnterResult,
+} from "@/api/matches";
 import type { MatchResponse, MatchStatus, TeamResponse } from "@/api/types";
 
 export const Route = createFileRoute("/admin/partidas")({
@@ -39,12 +47,14 @@ function toLocalInput(iso: string) {
 }
 
 function PartidasAdmin() {
+  const online = useOnline();
   const tournament = useTournamentDetail(tournamentId);
   const teams = useTeams();
   const matches = useMatches(tournamentId);
   const createMatch = useCreateMatch(tournamentId);
   const updateMatch = useUpdateMatch(tournamentId);
   const deleteMatch = useDeleteMatch(tournamentId);
+  const enterResult = useEnterResult(tournamentId);
 
   const [editing, setEditing] = useState<MatchResponse | null>(null);
   const [open, setOpen] = useState(false);
@@ -73,9 +83,40 @@ function PartidasAdmin() {
     return map;
   }, [tournament.data]);
 
-  const teamLabel = (id: string | null) => {
+  const teamInfo = (id: string | null) => {
     const t = id ? teamsById.get(id) : undefined;
-    return t ? `${t.flag_emoji ?? "🏳️"} ${t.name}` : "A definir";
+    return { flag: t?.flag_emoji ?? "🏳️", name: t?.name ?? "A definir" };
+  };
+
+  const groupedByDate = useMemo(() => {
+    const map = new Map<string, MatchResponse[]>();
+    [...(matches.data ?? [])]
+      .sort((a, b) => +new Date(a.kickoff_at) - +new Date(b.kickoff_at))
+      .forEach((m) => {
+        const key = new Date(m.kickoff_at).toLocaleDateString("pt-BR", {
+          weekday: "long",
+          day: "2-digit",
+          month: "long",
+        });
+        if (!map.has(key)) map.set(key, []);
+        map.get(key)!.push(m);
+      });
+    return Array.from(map.entries());
+  }, [matches.data]);
+
+  const submitResult = (m: MatchResponse, home: number, away: number) => {
+    if (!online) {
+      toast.error("Sem conexão. Conecte-se para realizar esta ação.");
+      return;
+    }
+    enterResult.mutate(
+      { matchId: m.id, body: { home_score: home, away_score: away } },
+      {
+        onSuccess: () => toast.success("Resultado salvo"),
+        onError: (error) =>
+          toast.error(error instanceof Error ? error.message : "Não foi possível salvar"),
+      },
+    );
   };
 
   const startCreate = () => {
@@ -102,6 +143,7 @@ function PartidasAdmin() {
   };
 
   const save = () => {
+    if (!online) return toast.error("Sem conexão. Conecte-se para realizar esta ação.");
     if (!form.stageId) return toast.error("Escolha a fase");
     if (!form.homeId || !form.awayId) return toast.error("Escolha as seleções");
     if (form.homeId === form.awayId) return toast.error("Seleções devem ser diferentes");
@@ -142,6 +184,10 @@ function PartidasAdmin() {
   };
 
   const remove = (m: MatchResponse) => {
+    if (!online) {
+      toast.error("Sem conexão. Conecte-se para realizar esta ação.");
+      return;
+    }
     deleteMatch.mutate(m.id, {
       onSuccess: () => toast.success("Partida removida"),
       onError: (error) =>
@@ -161,6 +207,7 @@ function PartidasAdmin() {
         </div>
         <Button
           onClick={startCreate}
+          disabled={!online}
           className="gold-gradient text-primary-foreground hover:opacity-90"
         >
           <Plus className="mr-1 h-4 w-4" /> Nova partida
@@ -183,55 +230,36 @@ function PartidasAdmin() {
             Tentar novamente
           </button>
         </div>
+      ) : matchList.length === 0 ? (
+        <div className="rounded-2xl border border-dashed border-border bg-surface/50 p-10 text-center">
+          <CalendarX className="mx-auto h-10 w-10 text-muted-foreground" />
+          <p className="mt-3 text-sm text-muted-foreground">Nenhuma partida cadastrada.</p>
+        </div>
       ) : (
-        <div className="overflow-hidden rounded-2xl border border-border bg-card">
-          <table className="w-full text-sm">
-            <thead className="bg-surface text-xs uppercase tracking-wider text-muted-foreground">
-              <tr>
-                <th className="px-4 py-3 text-left">Mandante</th>
-                <th className="px-4 py-3 text-left">Visitante</th>
-                <th className="px-4 py-3 text-left">Fase</th>
-                <th className="px-4 py-3 text-left">Data / Hora</th>
-                <th className="px-4 py-3 text-left">Status</th>
-                <th className="px-4 py-3 text-right">Ações</th>
-              </tr>
-            </thead>
-            <tbody>
-              {matchList.map((m) => {
-                const d = new Date(m.kickoff_at);
-                return (
-                  <tr key={m.id} className="border-t border-border/60 hover:bg-surface/50">
-                    <td className="px-4 py-3">{teamLabel(m.home_team_id)}</td>
-                    <td className="px-4 py-3">{teamLabel(m.away_team_id)}</td>
-                    <td className="px-4 py-3 text-muted-foreground">
-                      {stageNameById.get(m.stage_id) ?? "—"}
-                    </td>
-                    <td className="px-4 py-3 text-muted-foreground">
-                      {d.toLocaleDateString("pt-BR")} ·{" "}
-                      {d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
-                    </td>
-                    <td className="px-4 py-3">
-                      <StatusPill status={m.status} />
-                    </td>
-                    <td className="px-4 py-3 text-right">
-                      <Button size="icon" variant="ghost" onClick={() => startEdit(m)}>
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        onClick={() => remove(m)}
-                        disabled={deleteMatch.isPending}
-                        className="text-muted-foreground hover:bg-destructive/15 hover:text-destructive"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+        <div className="space-y-8">
+          {groupedByDate.map(([date, items]) => (
+            <section key={date}>
+              <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                {date}
+              </h2>
+              <div className="grid gap-3 sm:grid-cols-2">
+                {items.map((m) => (
+                  <AdminMatchCard
+                    key={m.id}
+                    match={m}
+                    home={teamInfo(m.home_team_id)}
+                    away={teamInfo(m.away_team_id)}
+                    fase={stageNameById.get(m.stage_id) ?? ""}
+                    onEnterResult={(home, away) => submitResult(m, home, away)}
+                    savingResult={enterResult.isPending || !online}
+                    onEdit={() => startEdit(m)}
+                    onRemove={() => remove(m)}
+                    removing={deleteMatch.isPending || !online}
+                  />
+                ))}
+              </div>
+            </section>
+          ))}
         </div>
       )}
 
@@ -326,7 +354,7 @@ function PartidasAdmin() {
             </Button>
             <Button
               onClick={save}
-              disabled={saving}
+              disabled={saving || !online}
               className="gold-gradient text-primary-foreground hover:opacity-90"
             >
               {saving ? "Salvando..." : "Salvar"}
@@ -336,14 +364,4 @@ function PartidasAdmin() {
       </Dialog>
     </div>
   );
-}
-
-function StatusPill({ status }: { status: MatchStatus }) {
-  const map = {
-    scheduled: { label: "Em breve", cls: "bg-primary/15 text-primary" },
-    live: { label: "Ao vivo", cls: "bg-destructive/15 text-destructive" },
-    finished: { label: "Encerrado", cls: "bg-muted text-muted-foreground" },
-  } as const;
-  const m = map[status];
-  return <span className={`rounded-md px-2 py-0.5 text-xs font-semibold ${m.cls}`}>{m.label}</span>;
 }

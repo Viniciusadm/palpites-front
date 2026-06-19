@@ -6,8 +6,6 @@ const IDB_KEY = "palpites:query-cache";
 const CACHE_BUSTER = "v1";
 const MAX_AGE = 1000 * 60 * 60 * 24 * 7;
 
-const PERSISTED_QUERY_KEYS = ["teams", "tournament", "matches"] as const;
-
 const idbStorage = {
   getItem: (key: string) => get<string>(key),
   setItem: (key: string, value: string) => set(key, value),
@@ -29,13 +27,6 @@ export const persistOptions: Omit<PersistQueryClientOptions, "queryClient"> = {
   maxAge: MAX_AGE,
   buster: CACHE_BUSTER,
   dehydrateOptions: {
-    shouldDehydrateQuery: (query) => {
-      const root = query.queryKey[0];
-      return (
-        typeof root === "string" &&
-        (PERSISTED_QUERY_KEYS as readonly string[]).includes(root) &&
-        query.state.status === "success"
-      );
-    },
+    shouldDehydrateQuery: (query) => query.state.status === "success",
   },
 };

@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
+import { useOnline } from "@/hooks/use-online";
 import { useTeams, useCreateTeam, useUpdateTeam, useDeleteTeam } from "@/api/teams";
 import type { TeamResponse } from "@/api/types";
 
@@ -22,6 +23,7 @@ export const Route = createFileRoute("/admin/selecoes")({
 });
 
 function SelecoesAdmin() {
+  const online = useOnline();
   const teams = useTeams();
   const createTeam = useCreateTeam();
   const updateTeam = useUpdateTeam();
@@ -46,6 +48,7 @@ function SelecoesAdmin() {
   };
 
   const save = () => {
+    if (!online) return toast.error("Sem conexão. Conecte-se para realizar esta ação.");
     if (!form.name.trim()) return toast.error("Informe o nome");
     if (!form.code.trim()) return toast.error("Informe o código");
     const body = {
@@ -66,6 +69,10 @@ function SelecoesAdmin() {
   };
 
   const remove = (t: TeamResponse) => {
+    if (!online) {
+      toast.error("Sem conexão. Conecte-se para realizar esta ação.");
+      return;
+    }
     deleteTeam.mutate(t.id, {
       onSuccess: () => toast.success("Seleção removida"),
       onError: (error) =>
@@ -82,6 +89,7 @@ function SelecoesAdmin() {
         </div>
         <Button
           onClick={startCreate}
+          disabled={!online}
           className="gold-gradient text-primary-foreground hover:opacity-90"
         >
           <Plus className="mr-1 h-4 w-4" /> Nova seleção
@@ -100,45 +108,40 @@ function SelecoesAdmin() {
             Tentar novamente
           </button>
         </div>
+      ) : list.length === 0 ? (
+        <div className="rounded-2xl border border-dashed border-border bg-surface/50 p-10 text-center">
+          <p className="text-sm text-muted-foreground">Nenhuma seleção cadastrada.</p>
+        </div>
       ) : (
-        <div className="overflow-hidden rounded-2xl border border-border bg-card">
-          <table className="w-full text-sm">
-            <thead className="bg-surface text-xs uppercase tracking-wider text-muted-foreground">
-              <tr>
-                <th className="px-4 py-3 text-left">Bandeira</th>
-                <th className="px-4 py-3 text-left">Nome</th>
-                <th className="px-4 py-3 text-left">Código</th>
-                <th className="px-4 py-3 text-right">Ações</th>
-              </tr>
-            </thead>
-            <tbody>
-              {list.map((t) => (
-                <tr key={t.id} className="border-t border-border/60 hover:bg-surface/50">
-                  <td className="px-4 py-3 text-2xl">{t.flag_emoji ?? "🏳️"}</td>
-                  <td className="px-4 py-3 font-medium">{t.name}</td>
-                  <td className="px-4 py-3">
-                    <span className="rounded-md bg-primary/15 px-2 py-0.5 text-xs font-semibold text-primary">
-                      {t.code}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    <Button size="icon" variant="ghost" onClick={() => startEdit(t)}>
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      onClick={() => remove(t)}
-                      disabled={deleteTeam.isPending}
-                      className="text-muted-foreground hover:bg-destructive/15 hover:text-destructive"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {list.map((t) => (
+            <article
+              key={t.id}
+              className="flex items-center gap-3 rounded-2xl border border-border bg-card px-4 py-3 transition-colors hover:border-primary/40"
+            >
+              <span className="text-3xl leading-none">{t.flag_emoji ?? "🏳️"}</span>
+              <div className="min-w-0 flex-1">
+                <p className="truncate font-semibold">{t.name}</p>
+                <span className="mt-0.5 inline-block rounded-md bg-primary/15 px-2 py-0.5 text-xs font-semibold text-primary">
+                  {t.code}
+                </span>
+              </div>
+              <div className="flex shrink-0 items-center gap-1">
+                <Button size="icon" variant="ghost" onClick={() => startEdit(t)}>
+                  <Pencil className="h-4 w-4" />
+                </Button>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  onClick={() => remove(t)}
+                  disabled={deleteTeam.isPending || !online}
+                  className="text-muted-foreground hover:bg-destructive/15 hover:text-destructive"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            </article>
+          ))}
         </div>
       )}
 
@@ -181,7 +184,7 @@ function SelecoesAdmin() {
             </Button>
             <Button
               onClick={save}
-              disabled={saving}
+              disabled={saving || !online}
               className="gold-gradient text-primary-foreground hover:opacity-90"
             >
               {saving ? "Salvando..." : "Salvar"}

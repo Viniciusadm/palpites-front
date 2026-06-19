@@ -13,6 +13,7 @@ import appCss from "../styles.css?url";
 import { persistOptions } from "../lib/query-persister";
 import { registerServiceWorker } from "../lib/register-sw";
 import { Toaster } from "@/components/ui/sonner";
+import { OfflineBanner } from "@/components/offline-banner";
 
 function NotFoundComponent() {
   return (
@@ -114,6 +115,7 @@ function RootComponent() {
   return (
     <PersistQueryClientProvider client={queryClient} persistOptions={persistOptions}>
       <HeadContent />
+      <OfflineBanner />
       <Outlet />
       <Toaster theme="dark" position="top-center" />
     </PersistQueryClientProvider>

@@ -12,6 +12,9 @@ import type {
   PoolsListResponse,
   RankingEntry,
   RankingResponse,
+  ScoringRuleInput,
+  ScoringRuleResponse,
+  ScoringRulesListResponse,
   UpdatePoolRequest,
 } from "@/api/types";
 
@@ -76,6 +79,38 @@ export function useLeavePool(poolId: string) {
   return useMutation({
     mutationFn: () => leavePool(poolId),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["pools"] }),
+  });
+}
+
+export async function getScoringRules(poolId: string): Promise<ScoringRuleResponse[]> {
+  const res = await api.get<ScoringRulesListResponse>(`/pools/${poolId}/scoring-rules`);
+  return res.data.rules;
+}
+
+export function useScoringRules(poolId: string) {
+  return useQuery({
+    queryKey: ["scoring-rules", poolId],
+    queryFn: () => getScoringRules(poolId),
+    enabled: Boolean(poolId),
+  });
+}
+
+export async function updateScoringRules(
+  poolId: string,
+  rules: ScoringRuleInput[],
+): Promise<ScoringRuleResponse[]> {
+  const res = await api.put<ScoringRulesListResponse>(`/pools/${poolId}/scoring-rules`, { rules });
+  return res.data.rules;
+}
+
+export function useUpdateScoringRules(poolId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (rules: ScoringRuleInput[]) => updateScoringRules(poolId, rules),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["scoring-rules", poolId] });
+      queryClient.invalidateQueries({ queryKey: ["ranking", poolId] });
+    },
   });
 }
 

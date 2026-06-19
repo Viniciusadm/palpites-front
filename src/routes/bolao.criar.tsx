@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { useCreatePool } from "@/api/pools";
 import { getToken } from "@/api/session";
 import { buildInviteUrl } from "@/lib/invite";
+import { useOnline } from "@/hooks/use-online";
 import { useAuthStore } from "@/store/auth-store";
 
 export const Route = createFileRoute("/bolao/criar")({
@@ -28,9 +29,14 @@ function CriarBolao() {
   const [copied, setCopied] = useState(false);
   const navigate = useNavigate();
   const setPoolId = useAuthStore((s) => s.setPoolId);
+  const online = useOnline();
   const createPool = useCreatePool();
 
   const handleCreate = () => {
+    if (!online) {
+      toast.error("Sem conexão. Conecte-se para realizar esta ação.");
+      return;
+    }
     if (!nome.trim()) {
       toast.error("Dê um nome ao seu bolão");
       return;
@@ -94,7 +100,7 @@ function CriarBolao() {
 
           <Button
             onClick={handleCreate}
-            disabled={createPool.isPending}
+            disabled={createPool.isPending || !online}
             className="mt-6 h-12 w-full gold-gradient text-base font-semibold text-primary-foreground hover:opacity-90"
           >
             {createPool.isPending ? "Criando..." : "Criar bolão"}

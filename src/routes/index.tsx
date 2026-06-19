@@ -1,8 +1,14 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { Trophy, Users, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { getToken } from "@/api/session";
 
 export const Route = createFileRoute("/")({
+  beforeLoad: () => {
+    if (typeof window !== "undefined" && getToken()) {
+      throw redirect({ to: "/app" });
+    }
+  },
   head: () => ({
     meta: [
       { title: "Bolão Copa — Crie ou entre em um bolão" },

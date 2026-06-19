@@ -37,6 +37,11 @@ export interface UpdateMatchRequest extends CreateMatchRequest {
   status: string;
 }
 
+export interface EnterResultRequest {
+  home_score: number;
+  away_score: number;
+}
+
 export interface TeamResponse {
   id: string;
   name: string;
@@ -161,6 +166,24 @@ export interface UpdatePoolRequest {
   ranking_public: boolean;
   prediction_lock_offset_minutes: number;
   status: string;
+}
+
+export type ScoringRuleKey = "exact_score" | "correct_outcome" | "correct_goal_difference";
+
+export interface ScoringRuleResponse {
+  id: string;
+  pool_id: string;
+  rule_key: string;
+  points: number;
+}
+
+export interface ScoringRulesListResponse {
+  rules: ScoringRuleResponse[];
+}
+
+export interface ScoringRuleInput {
+  rule_key: string;
+  points: number;
 }
 
 export interface NotificationPreference {

@@ -6,9 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { useOnline } from "@/hooks/use-online";
 import { type Partida, type Selecao } from "@/api/types";
 
-function StatusBadge({ status }: { status: Partida["status"] }) {
+export function StatusBadge({ status }: { status: Partida["status"] }) {
   if (status === "live") {
     return (
       <Badge className="border-0 bg-destructive/20 text-destructive">
@@ -33,7 +34,15 @@ function StatusBadge({ status }: { status: Partida["status"] }) {
   );
 }
 
-function TeamSide({ flag, name, align }: { flag: string; name: string; align: "left" | "right" }) {
+export function TeamSide({
+  flag,
+  name,
+  align,
+}: {
+  flag: string;
+  name: string;
+  align: "left" | "right";
+}) {
   return (
     <div
       className={cn(
@@ -66,6 +75,7 @@ export function MatchCard({
 }) {
   const [h, setH] = useState<string>(prediction?.home?.toString() ?? "");
   const [a, setA] = useState<string>(prediction?.away?.toString() ?? "");
+  const online = useOnline();
 
   const date = new Date(match.date);
   const FIVE_DAYS_MS = 5 * 24 * 60 * 60 * 1000;
@@ -77,6 +87,10 @@ export function MatchCard({
   const pts = match.status === "finished" ? (prediction?.points ?? 0) : 0;
 
   const save = () => {
+    if (!online) {
+      toast.error("Sem conexão. Conecte-se para realizar esta ação.");
+      return;
+    }
     const hn = parseInt(h, 10);
     const an = parseInt(a, 10);
     if (isNaN(hn) || isNaN(an) || hn < 0 || an < 0) {
@@ -103,15 +117,15 @@ export function MatchCard({
         notOpenYet && "opacity-60",
       )}
     >
-      <header className="flex items-center justify-between border-b border-border/60 bg-surface/60 px-4 py-2.5 text-xs text-muted-foreground">
-        <div className="flex items-center gap-2">
-          <span className="font-medium text-foreground/80">{match.fase}</span>
-          <span>•</span>
-          <span>
-            {dateStr} • {timeStr}
-          </span>
-        </div>
-        <StatusBadge status={match.status} />
+      <header className="flex flex-wrap items-center gap-x-2 gap-y-1 border-b border-border/60 bg-surface/60 px-4 py-2.5 text-xs text-muted-foreground">
+        <span className="font-medium text-foreground/80">{match.fase}</span>
+        <span className="hidden sm:inline">•</span>
+        <span className="order-last w-full sm:order-none sm:w-auto">
+          {dateStr} • {timeStr}
+        </span>
+        <span className="ml-auto">
+          <StatusBadge status={match.status} />
+        </span>
       </header>
 
       <div className="px-4 py-5">
@@ -184,7 +198,7 @@ export function MatchCard({
           <Button
             onClick={save}
             size="sm"
-            disabled={saving}
+            disabled={saving || !online}
             className="mt-4 w-full gold-gradient font-semibold text-primary-foreground hover:opacity-90"
           >
             {saving ? "Salvando..." : "Salvar palpite"}

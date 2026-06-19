@@ -12,10 +12,13 @@ import {
   LogOut,
 } from "lucide-react";
 import { useState, type ReactNode } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
-import { usePools } from "@/api/pools";
 import { useMe } from "@/api/auth";
+import { PoolSwitcher } from "@/components/pool-switcher";
 import { clearToken } from "@/api/session";
+import { clearQueryCache } from "@/lib/query-persister";
+import { useOnline } from "@/hooks/use-online";
 import { useAuthStore } from "@/store/auth-store";
 
 const navItems = [
@@ -33,32 +36,32 @@ export function AppShell({ children }: { children: ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const [drawer, setDrawer] = useState(false);
   const navigate = useNavigate();
-  const pools = usePools();
-  const poolId = useAuthStore((s) => s.poolId);
+  const online = useOnline();
+  const queryClient = useQueryClient();
   const displayName = useAuthStore((s) => s.displayName);
   const clear = useAuthStore((s) => s.clear);
   const me = useMe();
   const isAdmin = me.data?.user.role === "admin";
-  const poolName = pools.data?.find((p) => p.id === poolId)?.name ?? "";
 
   const logout = () => {
     clearToken();
     clear();
+    queryClient.clear();
+    clearQueryCache();
     navigate({ to: "/login" });
   };
 
   return (
     <div className="min-h-screen">
       {/* Desktop sidebar */}
-      <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r border-sidebar-border bg-sidebar lg:flex">
-        <div className="flex items-center gap-2.5 px-5 py-6">
-          <div className="grid h-9 w-9 place-items-center rounded-xl gold-gradient">
-            <Trophy className="h-5 w-5 text-primary-foreground" />
-          </div>
-          <div>
-            <div className="font-display text-sm font-semibold leading-tight">Bolão Copa</div>
-            <div className="text-[11px] text-muted-foreground">{poolName}</div>
-          </div>
+      <aside
+        className={cn(
+          "fixed bottom-0 left-0 z-30 hidden w-64 flex-col border-r border-sidebar-border bg-sidebar lg:flex",
+          online ? "top-0" : "top-8",
+        )}
+      >
+        <div className="px-3 py-6">
+          <PoolSwitcher variant="sidebar" />
         </div>
 
         <nav className="flex-1 space-y-1 px-3">
@@ -109,7 +112,12 @@ export function AppShell({ children }: { children: ReactNode }) {
       </aside>
 
       {/* Mobile top bar */}
-      <header className="sticky top-0 z-20 flex items-center justify-between border-b border-border bg-background/80 px-4 py-3 backdrop-blur lg:hidden">
+      <header
+        className={cn(
+          "sticky z-20 flex items-center justify-between border-b border-border bg-background/80 px-4 py-3 backdrop-blur lg:hidden",
+          online ? "top-0" : "top-8",
+        )}
+      >
         <button
           onClick={() => setDrawer(true)}
           className="grid h-9 w-9 place-items-center rounded-lg border border-border bg-surface"
@@ -117,15 +125,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         >
           <Menu className="h-4.5 w-4.5" />
         </button>
-        <div className="flex items-center gap-2">
-          <div className="grid h-8 w-8 place-items-center rounded-lg gold-gradient">
-            <Trophy className="h-4 w-4 text-primary-foreground" />
-          </div>
-          <div className="min-w-0 text-right">
-            <div className="font-display text-sm font-semibold leading-tight">Bolão Copa</div>
-            <div className="truncate text-[10px] text-muted-foreground">{poolName}</div>
-          </div>
-        </div>
+        <PoolSwitcher variant="topbar" />
       </header>
 
       {/* Mobile drawer */}

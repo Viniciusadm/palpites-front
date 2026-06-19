@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/api/client";
 import type {
   CreateMatchRequest,
+  EnterResultRequest,
   MatchResponse,
   MatchesListResponse,
   UpdateMatchRequest,
@@ -40,6 +41,14 @@ export async function deleteMatch(matchId: string): Promise<void> {
   await api.delete(`/matches/${matchId}`);
 }
 
+export async function enterResult(
+  matchId: string,
+  body: EnterResultRequest,
+): Promise<MatchResponse> {
+  const res = await api.put<MatchResponse>(`/matches/${matchId}/result`, body);
+  return res.data;
+}
+
 export function useCreateMatch(tournamentId: string) {
   const queryClient = useQueryClient();
   return useMutation({
@@ -61,6 +70,15 @@ export function useDeleteMatch(tournamentId: string) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: deleteMatch,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["matches", tournamentId] }),
+  });
+}
+
+export function useEnterResult(tournamentId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (vars: { matchId: string; body: EnterResultRequest }) =>
+      enterResult(vars.matchId, vars.body),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["matches", tournamentId] }),
   });
 }

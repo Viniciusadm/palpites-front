@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useMembers, usePools, useRemoveMember } from "@/api/pools";
 import { buildInviteUrl } from "@/lib/invite";
+import { useOnline } from "@/hooks/use-online";
 import { useAuthStore } from "@/store/auth-store";
 
 export const Route = createFileRoute("/app/participantes")({
@@ -15,6 +16,7 @@ export const Route = createFileRoute("/app/participantes")({
 function ParticipantesPage() {
   const poolId = useAuthStore((s) => s.poolId) ?? "";
   const userId = useAuthStore((s) => s.userId);
+  const online = useOnline();
   const pools = usePools();
   const members = useMembers(poolId);
   const removeMember = useRemoveMember(poolId);
@@ -29,6 +31,10 @@ function ParticipantesPage() {
   };
 
   const remove = (memberId: string, nome: string) => {
+    if (!online) {
+      toast.error("Sem conexão. Conecte-se para realizar esta ação.");
+      return;
+    }
     removeMember.mutate(memberId, {
       onSuccess: () => toast.success(`${nome} foi removido`),
       onError: (error) =>
@@ -118,7 +124,7 @@ function ParticipantesPage() {
                 {isOwner && !owner && (
                   <Button
                     onClick={() => remove(p.id, p.display_name)}
-                    disabled={removeMember.isPending}
+                    disabled={removeMember.isPending || !online}
                     variant="ghost"
                     size="icon"
                     className="text-muted-foreground hover:bg-destructive/15 hover:text-destructive"

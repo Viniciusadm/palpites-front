@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -8,11 +8,17 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useRegister } from "@/api/auth";
-import { setToken } from "@/api/session";
+import { getToken, setToken } from "@/api/session";
 import { getPendingInvite } from "@/lib/invite";
+import { useOnline } from "@/hooks/use-online";
 import { useAuthStore } from "@/store/auth-store";
 
 export const Route = createFileRoute("/register")({
+  beforeLoad: () => {
+    if (typeof window !== "undefined" && getToken()) {
+      throw redirect({ to: "/app" });
+    }
+  },
   head: () => ({ meta: [{ title: "Criar conta — Bolão Copa" }] }),
   component: RegisterPage,
 });
@@ -28,6 +34,7 @@ type Form = z.infer<typeof schema>;
 function RegisterPage() {
   const navigate = useNavigate();
   const setSession = useAuthStore((s) => s.setSession);
+  const online = useOnline();
   const { mutateAsync, isPending } = useRegister();
   const {
     register,
@@ -36,6 +43,10 @@ function RegisterPage() {
   } = useForm<Form>({ resolver: zodResolver(schema) });
 
   const onSubmit = handleSubmit(async (values) => {
+    if (!online) {
+      toast.error("Sem conexão. Conecte-se para realizar esta ação.");
+      return;
+    }
     try {
       const res = await mutateAsync(values);
       setToken(res.access_token);
@@ -107,7 +118,7 @@ function RegisterPage() {
 
         <Button
           type="submit"
-          disabled={isPending}
+          disabled={isPending || !online}
           className="mt-6 h-12 w-full gold-gradient text-base font-semibold text-primary-foreground hover:opacity-90"
         >
           {isPending ? "Criando..." : "Criar conta"}
