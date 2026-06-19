@@ -268,13 +268,9 @@ function SettingsPage() {
       </header>
 
       <div className="space-y-4">
+        {isOwner && (
         <Card>
           <h2 className="font-display text-base font-semibold">Bolão</h2>
-          {!isOwner && (
-            <p className="mt-1 text-xs text-muted-foreground">
-              Apenas o administrador pode alterar estes ajustes.
-            </p>
-          )}
           <div className="mt-4 space-y-2">
             <Label htmlFor="bn">Nome do bolão</Label>
             <Input
@@ -360,6 +356,7 @@ function SettingsPage() {
             </Button>
           )}
         </Card>
+        )}
 
         <Card>
           <h2 className="flex items-center gap-2 font-display text-base font-semibold">
@@ -415,6 +412,7 @@ function SettingsPage() {
           )}
         </Card>
 
+        {false && (
         <Card>
           <h2 className="font-display text-base font-semibold">Notificações</h2>
           {prefs.isPending ? (
@@ -439,6 +437,7 @@ function SettingsPage() {
             </div>
           )}
         </Card>
+        )}
 
         <Card>
           <h2 className="font-display text-base font-semibold text-destructive">Zona de risco</h2>
