@@ -67,7 +67,13 @@ export function MatchCard({
   const [h, setH] = useState<string>(prediction?.home?.toString() ?? "");
   const [a, setA] = useState<string>(prediction?.away?.toString() ?? "");
 
-  const locked = !editable || match.status !== "scheduled";
+  const date = new Date(match.date);
+  const FIVE_DAYS_MS = 5 * 24 * 60 * 60 * 1000;
+  const noTeams = !home.id || !away.id;
+  const tooFar = date.getTime() - Date.now() >= FIVE_DAYS_MS;
+  const notOpenYet = editable && match.status === "scheduled" && (noTeams || tooFar);
+
+  const locked = !editable || match.status !== "scheduled" || notOpenYet;
   const pts = match.status === "finished" ? (prediction?.points ?? 0) : 0;
 
   const save = () => {
@@ -80,7 +86,6 @@ export function MatchCard({
     onSave?.(hn, an);
   };
 
-  const date = new Date(match.date);
   const dateStr = date.toLocaleDateString("pt-BR", {
     weekday: "short",
     day: "2-digit",
@@ -92,7 +97,12 @@ export function MatchCard({
   });
 
   return (
-    <article className="overflow-hidden rounded-2xl border border-border bg-card transition-colors hover:border-primary/40">
+    <article
+      className={cn(
+        "overflow-hidden rounded-2xl border border-border bg-card transition-colors hover:border-primary/40",
+        notOpenYet && "opacity-60",
+      )}
+    >
       <header className="flex items-center justify-between border-b border-border/60 bg-surface/60 px-4 py-2.5 text-xs text-muted-foreground">
         <div className="flex items-center gap-2">
           <span className="font-medium text-foreground/80">{match.fase}</span>
@@ -160,6 +170,13 @@ export function MatchCard({
                 {pts > 0 ? `+${pts} pts` : "0 pts"}
               </span>
             )}
+          </div>
+        )}
+
+        {notOpenYet && (
+          <div className="mt-4 flex items-center gap-2 rounded-xl bg-surface px-3 py-2 text-xs text-muted-foreground">
+            <Lock className="h-3.5 w-3.5" />
+            {noTeams ? "Aguardando definição dos times" : "Palpites abrem mais perto do jogo"}
           </div>
         )}
 
