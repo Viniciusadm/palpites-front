@@ -5,7 +5,7 @@ import { AppShell } from "@/components/app-shell";
 import { usePools } from "@/api/pools";
 import { getToken } from "@/api/session";
 import { useAuthStore } from "@/store/auth-store";
-import { initPushNotifications } from "@/lib/fcm";
+import { resumePush } from "@/lib/fcm";
 import { NOTIFICATIONS_KEY } from "@/api/notifications";
 
 export const Route = createFileRoute("/app")({
@@ -27,7 +27,7 @@ function AppLayout() {
   const setPoolId = useAuthStore((s) => s.setPoolId);
 
   useEffect(() => {
-    void initPushNotifications(() => {
+    void resumePush(() => {
       queryClient.invalidateQueries({ queryKey: NOTIFICATIONS_KEY });
     });
   }, [queryClient]);

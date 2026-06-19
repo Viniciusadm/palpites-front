@@ -19,6 +19,7 @@ import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as BolaoEntrarRouteImport } from './routes/bolao.entrar'
 import { Route as BolaoCriarRouteImport } from './routes/bolao.criar'
 import { Route as AppRankingRouteImport } from './routes/app.ranking'
+import { Route as AppPreferenciasRouteImport } from './routes/app.preferencias'
 import { Route as AppParticipantesRouteImport } from './routes/app.participantes'
 import { Route as AppPalpitesRouteImport } from './routes/app.palpites'
 import { Route as AppNotificacoesRouteImport } from './routes/app.notificacoes'
@@ -78,6 +79,11 @@ const AppRankingRoute = AppRankingRouteImport.update({
   path: '/ranking',
   getParentRoute: () => AppRoute,
 } as any)
+const AppPreferenciasRoute = AppPreferenciasRouteImport.update({
+  id: '/preferencias',
+  path: '/preferencias',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppParticipantesRoute = AppParticipantesRouteImport.update({
   id: '/participantes',
   path: '/participantes',
@@ -133,6 +139,7 @@ export interface FileRoutesByFullPath {
   '/app/notificacoes': typeof AppNotificacoesRoute
   '/app/palpites': typeof AppPalpitesRoute
   '/app/participantes': typeof AppParticipantesRoute
+  '/app/preferencias': typeof AppPreferenciasRoute
   '/app/ranking': typeof AppRankingRoute
   '/bolao/criar': typeof BolaoCriarRoute
   '/bolao/entrar': typeof BolaoEntrarRoute
@@ -151,6 +158,7 @@ export interface FileRoutesByTo {
   '/app/notificacoes': typeof AppNotificacoesRoute
   '/app/palpites': typeof AppPalpitesRoute
   '/app/participantes': typeof AppParticipantesRoute
+  '/app/preferencias': typeof AppPreferenciasRoute
   '/app/ranking': typeof AppRankingRoute
   '/bolao/criar': typeof BolaoCriarRoute
   '/bolao/entrar': typeof BolaoEntrarRoute
@@ -172,6 +180,7 @@ export interface FileRoutesById {
   '/app/notificacoes': typeof AppNotificacoesRoute
   '/app/palpites': typeof AppPalpitesRoute
   '/app/participantes': typeof AppParticipantesRoute
+  '/app/preferencias': typeof AppPreferenciasRoute
   '/app/ranking': typeof AppRankingRoute
   '/bolao/criar': typeof BolaoCriarRoute
   '/bolao/entrar': typeof BolaoEntrarRoute
@@ -194,6 +203,7 @@ export interface FileRouteTypes {
     | '/app/notificacoes'
     | '/app/palpites'
     | '/app/participantes'
+    | '/app/preferencias'
     | '/app/ranking'
     | '/bolao/criar'
     | '/bolao/entrar'
@@ -212,6 +222,7 @@ export interface FileRouteTypes {
     | '/app/notificacoes'
     | '/app/palpites'
     | '/app/participantes'
+    | '/app/preferencias'
     | '/app/ranking'
     | '/bolao/criar'
     | '/bolao/entrar'
@@ -232,6 +243,7 @@ export interface FileRouteTypes {
     | '/app/notificacoes'
     | '/app/palpites'
     | '/app/participantes'
+    | '/app/preferencias'
     | '/app/ranking'
     | '/bolao/criar'
     | '/bolao/entrar'
@@ -321,6 +333,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppRankingRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/preferencias': {
+      id: '/app/preferencias'
+      path: '/preferencias'
+      fullPath: '/app/preferencias'
+      preLoaderRoute: typeof AppPreferenciasRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/participantes': {
       id: '/app/participantes'
       path: '/participantes'
@@ -401,6 +420,7 @@ interface AppRouteChildren {
   AppNotificacoesRoute: typeof AppNotificacoesRoute
   AppPalpitesRoute: typeof AppPalpitesRoute
   AppParticipantesRoute: typeof AppParticipantesRoute
+  AppPreferenciasRoute: typeof AppPreferenciasRoute
   AppRankingRoute: typeof AppRankingRoute
   AppIndexRoute: typeof AppIndexRoute
 }
@@ -412,6 +432,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppNotificacoesRoute: AppNotificacoesRoute,
   AppPalpitesRoute: AppPalpitesRoute,
   AppParticipantesRoute: AppParticipantesRoute,
+  AppPreferenciasRoute: AppPreferenciasRoute,
   AppRankingRoute: AppRankingRoute,
   AppIndexRoute: AppIndexRoute,
 }

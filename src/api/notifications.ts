@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/api/client";
+import { getToken } from "@/api/session";
 import type {
   Notification,
   NotificationPreference,
@@ -99,5 +100,37 @@ export function useUpdateNotificationPreferences(poolId: string) {
     mutationFn: (preferences: PreferenceItem[]) =>
       updateNotificationPreferences(poolId, preferences),
     onSuccess: (data) => queryClient.setQueryData(["notification-preferences", poolId], data),
+  });
+}
+
+const GLOBAL_PREFERENCES_KEY = ["notification-preferences", "global"] as const;
+
+export async function getGlobalNotificationPreferences(): Promise<NotificationPreference[]> {
+  const res = await api.get<NotificationPreferencesListResponse>("/notifications/preferences");
+  return res.data.preferences;
+}
+
+export function useGlobalNotificationPreferences() {
+  return useQuery({
+    queryKey: GLOBAL_PREFERENCES_KEY,
+    queryFn: getGlobalNotificationPreferences,
+    enabled: Boolean(getToken()),
+  });
+}
+
+export async function updateGlobalNotificationPreferences(
+  preferences: PreferenceItem[],
+): Promise<NotificationPreference[]> {
+  const res = await api.put<NotificationPreferencesListResponse>("/notifications/preferences", {
+    preferences,
+  });
+  return res.data.preferences;
+}
+
+export function useUpdateGlobalNotificationPreferences() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (preferences: PreferenceItem[]) => updateGlobalNotificationPreferences(preferences),
+    onSuccess: (data) => queryClient.setQueryData(GLOBAL_PREFERENCES_KEY, data),
   });
 }

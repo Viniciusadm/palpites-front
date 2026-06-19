@@ -29,10 +29,9 @@ import {
   useAddAllowedEmail,
   useRemoveAllowedEmail,
 } from "@/api/pools";
-import { useNotificationPreferences, useUpdateNotificationPreferences } from "@/api/notifications";
 import { useOnline } from "@/hooks/use-online";
 import { useAuthStore } from "@/store/auth-store";
-import type { NotificationPreference, ScoringRuleKey } from "@/api/types";
+import type { ScoringRuleKey } from "@/api/types";
 
 export const Route = createFileRoute("/app/configuracoes")({
   head: () => ({ meta: [{ title: "Configurações - Bolão Copa" }] }),
@@ -63,22 +62,6 @@ const SCORING_RULES: { key: ScoringRuleKey; label: string; help: string; fallbac
 const MIN_RULE_POINTS = 0;
 const MAX_RULE_POINTS = 1000;
 
-const PREF_LABELS: Record<string, string> = {
-  in_app: "No app",
-  push: "Push",
-  new_match: "Nova partida",
-  match_result: "Resultado da partida",
-  prediction_reminder: "Lembrete de palpite",
-  ranking_update: "Atualização de ranking",
-  member_joined: "Novo participante",
-};
-
-function label(value: string) {
-  if (PREF_LABELS[value]) return PREF_LABELS[value];
-  const text = value.replace(/_/g, " ");
-  return text.charAt(0).toUpperCase() + text.slice(1);
-}
-
 function SettingsPage() {
   const navigate = useNavigate();
   const poolId = useAuthStore((s) => s.poolId) ?? "";
@@ -91,8 +74,6 @@ function SettingsPage() {
   const updatePool = useUpdatePool(poolId);
   const leavePool = useLeavePool(poolId);
   const deletePool = useDeletePool(poolId);
-  const prefs = useNotificationPreferences(poolId);
-  const updatePrefs = useUpdateNotificationPreferences(poolId);
   const scoringRules = useScoringRules(poolId);
   const updateScoring = useUpdateScoringRules(poolId);
   const allowedEmails = useAllowedEmails(poolId, isOwner);
@@ -211,22 +192,6 @@ function SettingsPage() {
     });
   };
 
-  const togglePref = (pref: NotificationPreference) => {
-    if (!online) {
-      toast.error("Sem conexão. Conecte-se para realizar esta ação.");
-      return;
-    }
-    const next = (prefs.data ?? []).map((p) => ({
-      type: p.type,
-      channel: p.channel,
-      enabled: p.id === pref.id ? !p.enabled : p.enabled,
-    }));
-    updatePrefs.mutate(next, {
-      onError: (error) =>
-        toast.error(error instanceof Error ? error.message : "Não foi possível atualizar"),
-    });
-  };
-
   const leave = () => {
     if (!online) {
       toast.error("Sem conexão. Conecte-se para realizar esta ação.");
@@ -269,93 +234,93 @@ function SettingsPage() {
 
       <div className="space-y-4">
         {isOwner && (
-        <Card>
-          <h2 className="font-display text-base font-semibold">Bolão</h2>
-          <div className="mt-4 space-y-2">
-            <Label htmlFor="bn">Nome do bolão</Label>
-            <Input
-              id="bn"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              disabled={!isOwner}
-              className="h-11"
-            />
-          </div>
-          <div className="mt-4 space-y-3">
-            <Row
-              icon={Lock}
-              label="Exigir lista de e-mails autorizados para entrar"
-              checked={joinRequiresAllowlist}
-              onChange={setJoinRequiresAllowlist}
-              disabled={!isOwner}
-            />
-          </div>
-          {joinRequiresAllowlist && (
-            <div className="mt-4 space-y-3 rounded-xl bg-surface p-3">
-              <h3 className="text-sm font-semibold">E-mails autorizados</h3>
-              {isOwner && (
-                <div className="flex items-center gap-2">
-                  <Input
-                    type="email"
-                    value={newEmail}
-                    onChange={(e) => setNewEmail(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        e.preventDefault();
-                        addEmail();
-                      }
-                    }}
-                    placeholder="email@email.com"
-                    autoComplete="off"
-                    className="h-11"
-                  />
-                  <Button
-                    onClick={addEmail}
-                    disabled={!isOwner || !online || addAllowedEmail.isPending}
-                    className="gold-gradient font-semibold text-primary-foreground hover:opacity-90"
-                  >
-                    Adicionar
-                  </Button>
-                </div>
-              )}
-              {(allowedEmails.data ?? []).length === 0 ? (
-                <p className="text-xs text-muted-foreground">Nenhum e-mail adicionado ainda.</p>
-              ) : (
-                <ul className="space-y-2">
-                  {allowedEmails.data!.map((item) => (
-                    <li
-                      key={item.id}
-                      className="flex items-center gap-3 rounded-2xl border border-border bg-card p-3"
-                    >
-                      <span className="min-w-0 flex-1 truncate text-sm">{item.email}</span>
-                      {isOwner && (
-                        <Button
-                          onClick={() => removeEmail(item.id)}
-                          disabled={removeAllowedEmail.isPending || !online}
-                          variant="ghost"
-                          size="icon"
-                          className="text-muted-foreground hover:bg-destructive/15 hover:text-destructive"
-                          aria-label="Remover e-mail"
-                        >
-                          <UserMinus className="h-4 w-4" />
-                        </Button>
-                      )}
-                    </li>
-                  ))}
-                </ul>
-              )}
+          <Card>
+            <h2 className="font-display text-base font-semibold">Bolão</h2>
+            <div className="mt-4 space-y-2">
+              <Label htmlFor="bn">Nome do bolão</Label>
+              <Input
+                id="bn"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                disabled={!isOwner}
+                className="h-11"
+              />
             </div>
-          )}
-          {isOwner && (
-            <Button
-              onClick={saveSettings}
-              disabled={updatePool.isPending || !online}
-              className="mt-4 gold-gradient font-semibold text-primary-foreground hover:opacity-90"
-            >
-              {updatePool.isPending ? "Salvando..." : "Salvar alterações"}
-            </Button>
-          )}
-        </Card>
+            <div className="mt-4 space-y-3">
+              <Row
+                icon={Lock}
+                label="Exigir lista de e-mails autorizados para entrar"
+                checked={joinRequiresAllowlist}
+                onChange={setJoinRequiresAllowlist}
+                disabled={!isOwner}
+              />
+            </div>
+            {joinRequiresAllowlist && (
+              <div className="mt-4 space-y-3 rounded-xl bg-surface p-3">
+                <h3 className="text-sm font-semibold">E-mails autorizados</h3>
+                {isOwner && (
+                  <div className="flex items-center gap-2">
+                    <Input
+                      type="email"
+                      value={newEmail}
+                      onChange={(e) => setNewEmail(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          addEmail();
+                        }
+                      }}
+                      placeholder="email@email.com"
+                      autoComplete="off"
+                      className="h-11"
+                    />
+                    <Button
+                      onClick={addEmail}
+                      disabled={!isOwner || !online || addAllowedEmail.isPending}
+                      className="gold-gradient font-semibold text-primary-foreground hover:opacity-90"
+                    >
+                      Adicionar
+                    </Button>
+                  </div>
+                )}
+                {(allowedEmails.data ?? []).length === 0 ? (
+                  <p className="text-xs text-muted-foreground">Nenhum e-mail adicionado ainda.</p>
+                ) : (
+                  <ul className="space-y-2">
+                    {allowedEmails.data!.map((item) => (
+                      <li
+                        key={item.id}
+                        className="flex items-center gap-3 rounded-2xl border border-border bg-card p-3"
+                      >
+                        <span className="min-w-0 flex-1 truncate text-sm">{item.email}</span>
+                        {isOwner && (
+                          <Button
+                            onClick={() => removeEmail(item.id)}
+                            disabled={removeAllowedEmail.isPending || !online}
+                            variant="ghost"
+                            size="icon"
+                            className="text-muted-foreground hover:bg-destructive/15 hover:text-destructive"
+                            aria-label="Remover e-mail"
+                          >
+                            <UserMinus className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            )}
+            {isOwner && (
+              <Button
+                onClick={saveSettings}
+                disabled={updatePool.isPending || !online}
+                className="mt-4 gold-gradient font-semibold text-primary-foreground hover:opacity-90"
+              >
+                {updatePool.isPending ? "Salvando..." : "Salvar alterações"}
+              </Button>
+            )}
+          </Card>
         )}
 
         <Card>
@@ -411,33 +376,6 @@ function SettingsPage() {
             </>
           )}
         </Card>
-
-        {false && (
-        <Card>
-          <h2 className="font-display text-base font-semibold">Notificações</h2>
-          {prefs.isPending ? (
-            <p className="mt-3 text-sm text-muted-foreground">Carregando...</p>
-          ) : prefs.isError ? (
-            <p className="mt-3 text-sm text-muted-foreground">
-              Não foi possível carregar as preferências.
-            </p>
-          ) : (prefs.data ?? []).length === 0 ? (
-            <p className="mt-3 text-sm text-muted-foreground">Nenhuma preferência disponível.</p>
-          ) : (
-            <div className="mt-4 space-y-3">
-              {prefs.data!.map((p) => (
-                <Row
-                  key={p.id}
-                  label={`${label(p.type)} · ${label(p.channel)}`}
-                  checked={p.enabled}
-                  onChange={() => togglePref(p)}
-                  disabled={updatePrefs.isPending || !online}
-                />
-              ))}
-            </div>
-          )}
-        </Card>
-        )}
 
         <Card>
           <h2 className="font-display text-base font-semibold text-destructive">Zona de risco</h2>
