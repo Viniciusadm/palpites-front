@@ -3,6 +3,7 @@ import { Lock, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MatchCardShell, ScoreInputs } from "@/components/match-card-shell";
 import { toast } from "sonner";
+import { isResultWindowOpen } from "@/lib/datetime";
 import type { MatchResponse } from "@/api/types";
 
 export function AdminMatchCard({
@@ -31,8 +32,13 @@ export function AdminMatchCard({
 
   const noTeams = !match.home_team_id || !match.away_team_id;
   const hasResult = match.home_score !== null && match.away_score !== null;
+  const resultLocked = !isResultWindowOpen(match.kickoff_at);
 
   const save = () => {
+    if (resultLocked) {
+      toast.error("O resultado só pode ser lançado após o jogo terminar.");
+      return;
+    }
     const hn = parseInt(h, 10);
     const an = parseInt(a, 10);
     if (isNaN(hn) || isNaN(an) || hn < 0 || an < 0) {
@@ -55,7 +61,7 @@ export function AdminMatchCard({
           away={a}
           onHome={setH}
           onAway={setA}
-          disabled={noTeams}
+          disabled={noTeams || resultLocked}
           maxLength={2}
         />
       }
@@ -64,6 +70,11 @@ export function AdminMatchCard({
         <div className="mt-4 flex items-center gap-2 rounded-xl bg-surface px-3 py-2 text-xs text-muted-foreground">
           <Lock className="h-3.5 w-3.5" />
           Defina as duas seleções antes de lançar o resultado
+        </div>
+      ) : resultLocked ? (
+        <div className="mt-4 flex items-center gap-2 rounded-xl bg-surface px-3 py-2 text-xs text-muted-foreground">
+          <Lock className="h-3.5 w-3.5" />
+          O resultado pode ser lançado após o apito final
         </div>
       ) : (
         <Button

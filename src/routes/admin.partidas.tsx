@@ -32,7 +32,12 @@ import {
   useEnterResult,
 } from "@/api/matches";
 import type { MatchResponse, MatchStatus, TeamResponse } from "@/api/types";
-import { brasiliaInputToIso, formatGroupDate, isoToBrasiliaInput } from "@/lib/datetime";
+import {
+  brasiliaInputToIso,
+  formatGroupDate,
+  isoToBrasiliaInput,
+  isResultWindowOpen,
+} from "@/lib/datetime";
 
 export const Route = createFileRoute("/admin/partidas")({
   head: () => ({ meta: [{ title: "Admin · Partidas" }] }),
@@ -107,6 +112,10 @@ function AdminMatches() {
   const submitResult = (m: MatchResponse, home: number, away: number) => {
     if (!online) {
       toast.error("Sem conexão. Conecte-se para realizar esta ação.");
+      return;
+    }
+    if (!isResultWindowOpen(m.kickoff_at)) {
+      toast.error("O resultado só pode ser lançado após o jogo terminar.");
       return;
     }
     enterResult.mutate(

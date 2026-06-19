@@ -8,6 +8,7 @@ import { useOnline } from "@/hooks/use-online";
 import { useMe } from "@/api/auth";
 import { type Match, type Team } from "@/api/types";
 import { MatchCardShell, ScoreInputs, StatusBadge, TeamSide } from "@/components/match-card-shell";
+import { isResultWindowOpen } from "@/lib/datetime";
 
 export { StatusBadge, TeamSide };
 
@@ -36,9 +37,7 @@ export function MatchCard({
 
   const date = new Date(match.date);
   const FIVE_DAYS_MS = 5 * 24 * 60 * 60 * 1000;
-  const RESULT_READY_MS = 110 * 60 * 1000;
-  const canEnterResult =
-    isAdmin && match.status === "live" && Date.now() - date.getTime() >= RESULT_READY_MS;
+  const canEnterResult = isAdmin && match.status === "live" && isResultWindowOpen(match.date);
   const noTeams = !home.id || !away.id;
   const tooFar = date.getTime() - Date.now() >= FIVE_DAYS_MS;
   const notOpenYet = editable && match.status === "scheduled" && (noTeams || tooFar);

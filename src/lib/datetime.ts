@@ -5,6 +5,18 @@
 // dispositivo do usuário. America/Sao_Paulo cobre o UTC-3 atual sem manutenção.
 export const BRASILIA_TZ = "America/Sao_Paulo";
 
+/** Minutos (em ms) após o kickoff a partir dos quais o resultado pode ser lançado. */
+export const RESULT_READY_MS = 110 * 60 * 1000;
+
+/**
+ * true quando já se passaram >= 110 min do kickoff, ou seja, o jogo já aconteceu
+ * e o resultado pode ser lançado. Recebe a string ISO do kickoff (`match.date`
+ * na visão pública ou `match.kickoff_at` no admin).
+ */
+export function isResultWindowOpen(kickoffISO: string): boolean {
+  return Date.now() - new Date(kickoffISO).getTime() >= RESULT_READY_MS;
+}
+
 /** Data curta para o card: "qua., 18 de jun." */
 export function formatMatchDate(iso: string): string {
   return new Date(iso).toLocaleDateString("pt-BR", {
