@@ -1,7 +1,8 @@
-import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { ArrowLeft, Check, Copy, Trophy } from "lucide-react";
+import { Check, Copy, Trophy } from "lucide-react";
 import { toast } from "sonner";
+import { AuthLayout } from "@/components/auth-layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,7 +13,7 @@ import { useOnline } from "@/hooks/use-online";
 import { useAuthStore } from "@/store/auth-store";
 
 export const Route = createFileRoute("/bolao/criar")({
-  head: () => ({ meta: [{ title: "Criar bolão — Bolão Copa" }] }),
+  head: () => ({ meta: [{ title: "Criar bolão - Bolão Copa" }] }),
   beforeLoad: () => {
     if (typeof window !== "undefined" && !getToken()) {
       throw redirect({ to: "/login" });
@@ -68,16 +69,9 @@ function CriarBolao() {
   };
 
   return (
-    <main className="mx-auto min-h-screen max-w-2xl px-5 py-8">
-      <Link
-        to="/"
-        className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary"
-      >
-        <ArrowLeft className="h-4 w-4" /> Voltar
-      </Link>
-
+    <AuthLayout>
       {!inviteCode ? (
-        <div className="mt-10 rounded-3xl border border-border bg-card p-6 sm:p-8">
+        <div className="w-full rounded-3xl border border-border bg-card p-6 shadow-[var(--shadow-card)] sm:p-8">
           <div className="grid h-12 w-12 place-items-center rounded-2xl gold-gradient">
             <Trophy className="h-6 w-6 text-primary-foreground" />
           </div>
@@ -107,7 +101,7 @@ function CriarBolao() {
           </Button>
         </div>
       ) : (
-        <div className="mt-10 rounded-3xl border border-primary/40 bg-card p-6 sm:p-8 glow-gold">
+        <div className="w-full rounded-3xl border border-primary/40 bg-card p-6 glow-gold sm:p-8">
           <div className="flex items-center gap-3">
             <div className="grid h-10 w-10 place-items-center rounded-full bg-success/20">
               <Check className="h-5 w-5 text-success" />
@@ -141,6 +135,6 @@ function CriarBolao() {
           </Button>
         </div>
       )}
-    </main>
+    </AuthLayout>
   );
 }

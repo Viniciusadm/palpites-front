@@ -1,9 +1,12 @@
 import { createFileRoute, Outlet, redirect, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { AppShell } from "@/components/app-shell";
 import { usePools } from "@/api/pools";
 import { getToken } from "@/api/session";
 import { useAuthStore } from "@/store/auth-store";
+import { initPushNotifications } from "@/lib/fcm";
+import { NOTIFICATIONS_KEY } from "@/api/notifications";
 
 export const Route = createFileRoute("/app")({
   beforeLoad: () => {
@@ -18,9 +21,16 @@ const tournamentId = import.meta.env.VITE_TOURNAMENT_ID;
 
 function AppLayout() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const pools = usePools();
   const poolId = useAuthStore((s) => s.poolId);
   const setPoolId = useAuthStore((s) => s.setPoolId);
+
+  useEffect(() => {
+    void initPushNotifications(() => {
+      queryClient.invalidateQueries({ queryKey: NOTIFICATIONS_KEY });
+    });
+  }, [queryClient]);
 
   const resolvedPoolId = useMemo(() => {
     const list = pools.data;

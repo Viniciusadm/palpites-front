@@ -2,6 +2,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/api/client";
 import { getToken } from "@/api/session";
 import type {
+  AllowedEmail,
+  AllowedEmailsResponse,
   CreatePoolRequest,
   JoinPoolResponse,
   MemberPrediction,
@@ -78,6 +80,18 @@ export function useLeavePool(poolId: string) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: () => leavePool(poolId),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["pools"] }),
+  });
+}
+
+export async function deletePool(poolId: string, confirmName: string): Promise<void> {
+  await api.delete(`/pools/${poolId}`, { data: { confirm_name: confirmName } });
+}
+
+export function useDeletePool(poolId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (confirmName: string) => deletePool(poolId, confirmName),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["pools"] }),
   });
 }
@@ -167,5 +181,43 @@ export function useRemoveMember(poolId: string) {
   return useMutation({
     mutationFn: (memberId: string) => removeMember(poolId, memberId),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["members", poolId] }),
+  });
+}
+
+export async function getAllowedEmails(poolId: string): Promise<AllowedEmail[]> {
+  const res = await api.get<AllowedEmailsResponse>(`/pools/${poolId}/allowed-emails`);
+  return res.data.emails;
+}
+
+export function useAllowedEmails(poolId: string) {
+  return useQuery({
+    queryKey: ["allowed-emails", poolId],
+    queryFn: () => getAllowedEmails(poolId),
+    enabled: Boolean(getToken() && poolId),
+  });
+}
+
+export async function addAllowedEmail(poolId: string, email: string): Promise<AllowedEmail> {
+  const res = await api.post<AllowedEmail>(`/pools/${poolId}/allowed-emails`, { email });
+  return res.data;
+}
+
+export function useAddAllowedEmail(poolId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (email: string) => addAllowedEmail(poolId, email),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["allowed-emails", poolId] }),
+  });
+}
+
+export async function removeAllowedEmail(poolId: string, id: string): Promise<void> {
+  await api.delete(`/pools/${poolId}/allowed-emails/${id}`);
+}
+
+export function useRemoveAllowedEmail(poolId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => removeAllowedEmail(poolId, id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["allowed-emails", poolId] }),
   });
 }

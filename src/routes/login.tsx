@@ -2,10 +2,12 @@ import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-ro
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { ArrowLeft, LogIn } from "lucide-react";
+import { LogIn } from "lucide-react";
 import { toast } from "sonner";
+import { AuthLayout } from "@/components/auth-layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { useLogin } from "@/api/auth";
 import { getToken, setToken } from "@/api/session";
@@ -19,7 +21,7 @@ export const Route = createFileRoute("/login")({
       throw redirect({ to: "/app" });
     }
   },
-  head: () => ({ meta: [{ title: "Entrar — Bolão Copa" }] }),
+  head: () => ({ meta: [{ title: "Entrar - Bolão Copa" }] }),
   component: LoginPage,
 });
 
@@ -58,17 +60,10 @@ function LoginPage() {
   });
 
   return (
-    <main className="mx-auto min-h-screen max-w-xl px-5 py-8">
-      <Link
-        to="/"
-        className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary"
-      >
-        <ArrowLeft className="h-4 w-4" /> Voltar
-      </Link>
-
+    <AuthLayout>
       <form
         onSubmit={onSubmit}
-        className="mt-10 rounded-3xl border border-border bg-card p-6 sm:p-8"
+        className="w-full rounded-3xl border border-border bg-card p-6 shadow-[var(--shadow-card)] sm:p-8"
       >
         <div className="grid h-12 w-12 place-items-center rounded-2xl bg-secondary">
           <LogIn className="h-6 w-6 text-primary" />
@@ -81,7 +76,7 @@ function LoginPage() {
           <Input
             id="email"
             type="email"
-            placeholder="voce@email.com"
+            placeholder="email@email.com"
             className="h-12 text-base"
             {...register("email")}
           />
@@ -90,9 +85,8 @@ function LoginPage() {
 
         <div className="mt-4 space-y-2">
           <Label htmlFor="password">Senha</Label>
-          <Input
+          <PasswordInput
             id="password"
-            type="password"
             placeholder="••••••••"
             className="h-12 text-base"
             {...register("password")}
@@ -115,6 +109,6 @@ function LoginPage() {
           </Link>
         </p>
       </form>
-    </main>
+    </AuthLayout>
   );
 }

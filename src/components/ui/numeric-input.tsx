@@ -1,8 +1,10 @@
 import * as React from "react";
 import { Input } from "@/components/ui/input";
 
-export interface NumericInputProps
-  extends Omit<React.ComponentProps<typeof Input>, "type" | "onChange" | "value"> {
+export interface NumericInputProps extends Omit<
+  React.ComponentProps<typeof Input>,
+  "type" | "onChange" | "value"
+> {
   value: string | number;
   onChange: (value: string) => void;
   maxLength?: number;
@@ -39,6 +41,6 @@ export const NumericInput = React.forwardRef<HTMLInputElement, NumericInputProps
         {...rest}
       />
     );
-  }
+  },
 );
 NumericInput.displayName = "NumericInput";

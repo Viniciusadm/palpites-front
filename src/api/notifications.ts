@@ -1,10 +1,69 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/api/client";
 import type {
+  Notification,
   NotificationPreference,
   NotificationPreferencesListResponse,
+  NotificationsListResponse,
   PreferenceItem,
 } from "@/api/types";
+
+export const NOTIFICATIONS_KEY = ["notifications"] as const;
+
+export async function getNotifications(unread = false): Promise<Notification[]> {
+  const res = await api.get<NotificationsListResponse>("/notifications", {
+    params: unread ? { unread: true } : undefined,
+  });
+  return res.data.notifications;
+}
+
+export function useNotifications() {
+  return useQuery({
+    queryKey: NOTIFICATIONS_KEY,
+    queryFn: () => getNotifications(false),
+    refetchInterval: 60_000,
+    refetchOnWindowFocus: true,
+  });
+}
+
+export function useUnreadCount() {
+  const query = useNotifications();
+  const count = (query.data ?? []).filter((n) => n.read_at === null).length;
+  return { ...query, count };
+}
+
+export async function markNotificationRead(id: string): Promise<Notification> {
+  const res = await api.patch<Notification>(`/notifications/${id}/read`);
+  return res.data;
+}
+
+export function useMarkNotificationRead() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => markNotificationRead(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: NOTIFICATIONS_KEY }),
+  });
+}
+
+export async function markAllNotificationsRead(): Promise<void> {
+  await api.patch("/notifications/read-all");
+}
+
+export function useMarkAllNotificationsRead() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => markAllNotificationsRead(),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: NOTIFICATIONS_KEY }),
+  });
+}
+
+export async function registerDevice(token: string, platform = "web"): Promise<void> {
+  await api.post("/notifications/devices", { token, platform });
+}
+
+export async function unregisterDevice(token: string): Promise<void> {
+  await api.delete(`/notifications/devices/${encodeURIComponent(token)}`);
+}
 
 export async function getNotificationPreferences(
   poolId: string,

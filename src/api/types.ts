@@ -130,8 +130,7 @@ export interface PoolResponse {
   owner_user_id: string;
   name: string;
   invite_code: string;
-  visibility: string;
-  ranking_public: boolean;
+  join_requires_allowlist: boolean;
   prediction_lock_offset_minutes: number;
   status: string;
 }
@@ -162,10 +161,19 @@ export interface CreatePoolRequest {
 
 export interface UpdatePoolRequest {
   name: string;
-  visibility: string;
-  ranking_public: boolean;
+  join_requires_allowlist: boolean;
   prediction_lock_offset_minutes: number;
   status: string;
+}
+
+export interface AllowedEmail {
+  id: string;
+  email: string;
+  created_at: string;
+}
+
+export interface AllowedEmailsResponse {
+  emails: AllowedEmail[];
 }
 
 export type ScoringRuleKey = "exact_score" | "correct_outcome" | "correct_goal_difference";
@@ -202,6 +210,21 @@ export interface PreferenceItem {
   type: string;
   channel: string;
   enabled: boolean;
+}
+
+export interface Notification {
+  id: string;
+  pool_id: string | null;
+  type: string;
+  title: string;
+  body: string;
+  related_match_id: string | null;
+  read_at: string | null;
+  created_at: string;
+}
+
+export interface NotificationsListResponse {
+  notifications: Notification[];
 }
 
 export interface JoinPoolResponse {

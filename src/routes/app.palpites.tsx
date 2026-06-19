@@ -16,7 +16,7 @@ import { useAuthStore } from "@/store/auth-store";
 import type { Selecao } from "@/api/types";
 
 export const Route = createFileRoute("/app/palpites")({
-  head: () => ({ meta: [{ title: "Meus palpites — Bolão Copa" }] }),
+  head: () => ({ meta: [{ title: "Meus palpites - Bolão Copa" }] }),
   component: PalpitesPage,
 });
 

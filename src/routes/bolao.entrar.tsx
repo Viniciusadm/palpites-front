@@ -1,7 +1,8 @@
 import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { ArrowLeft, KeyRound } from "lucide-react";
+import { KeyRound } from "lucide-react";
 import { toast } from "sonner";
+import { AuthLayout } from "@/components/auth-layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,7 +13,7 @@ import { useOnline } from "@/hooks/use-online";
 import { useAuthStore } from "@/store/auth-store";
 
 export const Route = createFileRoute("/bolao/entrar")({
-  head: () => ({ meta: [{ title: "Entrar em bolão — Bolão Copa" }] }),
+  head: () => ({ meta: [{ title: "Entrar em bolão - Bolão Copa" }] }),
   validateSearch: (s): { code?: string } => ({
     code: typeof s.code === "string" ? s.code : undefined,
   }),
@@ -56,15 +57,8 @@ function EntrarBolao() {
   };
 
   return (
-    <main className="mx-auto min-h-screen max-w-xl px-5 py-8">
-      <Link
-        to="/"
-        className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary"
-      >
-        <ArrowLeft className="h-4 w-4" /> Voltar
-      </Link>
-
-      <div className="mt-10 rounded-3xl border border-border bg-card p-6 sm:p-8">
+    <AuthLayout>
+      <div className="w-full rounded-3xl border border-border bg-card p-6 shadow-[var(--shadow-card)] sm:p-8">
         <div className="grid h-12 w-12 place-items-center rounded-2xl bg-secondary">
           <KeyRound className="h-6 w-6 text-primary" />
         </div>
@@ -100,6 +94,6 @@ function EntrarBolao() {
           </Link>
         </p>
       </div>
-    </main>
+    </AuthLayout>
   );
 }

@@ -1,63 +1,15 @@
 import { useState } from "react";
-import { Lock, Check, Clock, CircleDot } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { NumericInput } from "@/components/ui/numeric-input";
+import { Link } from "@tanstack/react-router";
+import { ChevronRight, ClipboardCheck, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { formatMatchDate, formatMatchTime } from "@/lib/datetime";
 import { toast } from "sonner";
 import { useOnline } from "@/hooks/use-online";
+import { useMe } from "@/api/auth";
 import { type Partida, type Selecao } from "@/api/types";
+import { MatchCardShell, ScoreInputs, StatusBadge, TeamSide } from "@/components/match-card-shell";
 
-export function StatusBadge({ status }: { status: Partida["status"] }) {
-  if (status === "live") {
-    return (
-      <Badge className="border-0 bg-destructive/20 text-destructive">
-        <CircleDot className="mr-1 h-3 w-3 animate-pulse" />
-        AO VIVO
-      </Badge>
-    );
-  }
-  if (status === "finished") {
-    return (
-      <Badge variant="secondary" className="border-0 bg-muted text-muted-foreground">
-        <Check className="mr-1 h-3 w-3" />
-        Encerrado
-      </Badge>
-    );
-  }
-  return (
-    <Badge variant="secondary" className="border-0 bg-primary/15 text-primary">
-      <Clock className="mr-1 h-3 w-3" />
-      Em breve
-    </Badge>
-  );
-}
-
-export function TeamSide({
-  flag,
-  name,
-  align,
-}: {
-  flag: string;
-  name: string;
-  align: "left" | "right";
-}) {
-  return (
-    <div
-      className={cn(
-        "flex min-w-0 flex-1 items-center gap-2.5",
-        align === "right" && "flex-row-reverse text-right",
-      )}
-    >
-      <span className="text-2xl leading-none sm:text-3xl">{flag}</span>
-      <span className="min-w-0 break-words text-sm font-semibold leading-tight sm:text-base">
-        {name}
-      </span>
-    </div>
-  );
-}
+export { StatusBadge, TeamSide };
 
 export function MatchCard({
   match,
@@ -79,9 +31,14 @@ export function MatchCard({
   const [h, setH] = useState<string>(prediction?.home?.toString() ?? "");
   const [a, setA] = useState<string>(prediction?.away?.toString() ?? "");
   const online = useOnline();
+  const me = useMe();
+  const isAdmin = me.data?.user.role === "admin";
 
   const date = new Date(match.date);
   const FIVE_DAYS_MS = 5 * 24 * 60 * 60 * 1000;
+  const RESULT_READY_MS = 110 * 60 * 1000;
+  const canEnterResult =
+    isAdmin && match.status === "live" && Date.now() - date.getTime() >= RESULT_READY_MS;
   const noTeams = !home.id || !away.id;
   const tooFar = date.getTime() - Date.now() >= FIVE_DAYS_MS;
   const notOpenYet = editable && match.status === "scheduled" && (noTeams || tooFar);
@@ -103,64 +60,45 @@ export function MatchCard({
     onSave?.(hn, an);
   };
 
-  const dateStr = formatMatchDate(match.date);
-  const timeStr = formatMatchTime(match.date);
+  const score = locked ? (
+    <div className="flex shrink-0 items-center gap-1 px-1">
+      <span className="font-display text-2xl font-bold tabular-nums sm:text-3xl">
+        {match.homeScore ?? "–"}
+      </span>
+      <span className="text-muted-foreground">×</span>
+      <span className="font-display text-2xl font-bold tabular-nums sm:text-3xl">
+        {match.awayScore ?? "–"}
+      </span>
+    </div>
+  ) : (
+    <ScoreInputs home={h} away={a} onHome={setH} onAway={setA} />
+  );
 
   return (
-    <article
-      className={cn(
-        "overflow-hidden rounded-2xl border border-border bg-card transition-colors hover:border-primary/40",
-        notOpenYet && "opacity-60",
+    <>
+      {canEnterResult && (
+        <Link
+          to="/admin/partidas"
+          className="group mb-2 flex items-center gap-2.5 rounded-xl border border-primary/40 bg-primary/10 px-3 py-2.5 text-xs font-medium text-primary transition-colors hover:bg-primary/15"
+        >
+          <span className="relative flex h-2 w-2 shrink-0">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75" />
+            <span className="relative inline-flex h-2 w-2 rounded-full bg-primary" />
+          </span>
+          <ClipboardCheck className="h-4 w-4 shrink-0" />
+          <span className="flex-1 leading-tight">Já é possível lançar o resultado</span>
+          <ChevronRight className="h-4 w-4 shrink-0 transition-transform group-hover:translate-x-0.5" />
+        </Link>
       )}
-    >
-      <header className="flex flex-wrap items-center gap-x-2 gap-y-1 border-b border-border/60 bg-surface/60 px-4 py-2.5 text-xs text-muted-foreground">
-        <span className="font-medium text-foreground/80">{match.fase}</span>
-        <span className="hidden sm:inline">•</span>
-        <span className="order-last w-full sm:order-none sm:w-auto">
-          {dateStr} • {timeStr}
-        </span>
-        <span className="ml-auto">
-          <StatusBadge status={match.status} />
-        </span>
-      </header>
-
-      <div className="px-4 py-5">
-        <div className="flex items-center gap-2">
-          <TeamSide flag={home.flag} name={home.nome} align="left" />
-
-          {locked ? (
-            <div className="flex shrink-0 items-center gap-1 px-1">
-              <span className="font-display text-2xl font-bold tabular-nums sm:text-3xl">
-                {match.homeScore ?? "–"}
-              </span>
-              <span className="text-muted-foreground">×</span>
-              <span className="font-display text-2xl font-bold tabular-nums sm:text-3xl">
-                {match.awayScore ?? "–"}
-              </span>
-            </div>
-          ) : (
-            <div className="flex shrink-0 items-center gap-1 px-0.5">
-              <NumericInput
-                maxLength={1}
-                value={h}
-                onChange={setH}
-                className="h-11 w-9 text-center text-lg font-bold tabular-nums sm:w-10"
-                placeholder="-"
-              />
-              <span className="text-sm text-muted-foreground">×</span>
-              <NumericInput
-                maxLength={1}
-                value={a}
-                onChange={setA}
-                className="h-11 w-9 text-center text-lg font-bold tabular-nums sm:w-10"
-                placeholder="-"
-              />
-            </div>
-          )}
-
-          <TeamSide flag={away.flag} name={away.nome} align="right" />
-        </div>
-
+      <MatchCardShell
+        fase={match.fase}
+        dateISO={match.date}
+        status={match.status}
+        home={{ flag: home.flag, name: home.nome }}
+        away={{ flag: away.flag, name: away.nome }}
+        dimmed={notOpenYet}
+        score={score}
+      >
         {editable && locked && prediction && (
           <div className="mt-4 flex items-center justify-between rounded-xl bg-surface px-3 py-2 text-xs">
             <div className="flex items-center gap-2 text-muted-foreground">
@@ -200,7 +138,7 @@ export function MatchCard({
             {saving ? "Salvando..." : "Salvar palpite"}
           </Button>
         )}
-      </div>
-    </article>
+      </MatchCardShell>
+    </>
   );
 }

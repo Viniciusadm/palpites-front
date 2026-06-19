@@ -16,9 +16,11 @@ import { useQueryClient } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
 import { useMe } from "@/api/auth";
 import { PoolSwitcher } from "@/components/pool-switcher";
+import { NotificationBell, NotificationNavLink } from "@/components/notification-bell";
 import { clearToken } from "@/api/session";
 import { clearQueryCache } from "@/lib/query-persister";
 import { useOnline } from "@/hooks/use-online";
+import { useDrawerSwipe } from "@/hooks/use-drawer-swipe";
 import { useAuthStore } from "@/store/auth-store";
 
 const navItems = [
@@ -35,6 +37,7 @@ const mobileNav = navItems.slice(0, 4);
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const [drawer, setDrawer] = useState(false);
+  const { dragging, progress } = useDrawerSwipe(drawer, setDrawer);
   const navigate = useNavigate();
   const online = useOnline();
   const queryClient = useQueryClient();
@@ -84,6 +87,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               </Link>
             );
           })}
+          <NotificationNavLink active={pathname === "/app/notificacoes"} />
         </nav>
 
         <div className="space-y-1 border-t border-sidebar-border p-3">
@@ -125,28 +129,35 @@ export function AppShell({ children }: { children: ReactNode }) {
         >
           <Menu className="h-4.5 w-4.5" />
         </button>
-        <PoolSwitcher variant="topbar" />
+        <div className="flex items-center gap-2">
+          <PoolSwitcher variant="topbar" />
+          <NotificationBell />
+        </div>
       </header>
 
       {/* Mobile drawer */}
       <div
         className={cn(
           "fixed inset-0 z-40 lg:hidden transition-all",
-          drawer ? "pointer-events-auto" : "pointer-events-none",
+          drawer || dragging ? "pointer-events-auto" : "pointer-events-none",
         )}
       >
         <div
           className={cn(
-            "absolute inset-0 bg-black/60 transition-opacity duration-300",
-            drawer ? "opacity-100" : "opacity-0",
+            "absolute inset-0 bg-black/60",
+            dragging ? "transition-none" : "transition-opacity duration-300",
+            !dragging && (drawer ? "opacity-100" : "opacity-0"),
           )}
+          style={dragging ? { opacity: progress } : undefined}
           onClick={() => setDrawer(false)}
         />
         <div
           className={cn(
-            "absolute left-0 top-0 h-full w-72 bg-sidebar p-5 shadow-2xl transition-transform duration-300 ease-out",
-            drawer ? "translate-x-0" : "-translate-x-full",
+            "absolute left-0 top-0 h-full w-72 bg-sidebar p-5 shadow-2xl ease-out",
+            dragging ? "transition-none" : "transition-transform duration-300",
+            !dragging && (drawer ? "translate-x-0" : "-translate-x-full"),
           )}
+          style={dragging ? { transform: `translateX(${(progress - 1) * 288}px)` } : undefined}
         >
           <div className="flex items-center justify-between">
             <span className="font-display font-semibold">Menu</span>
@@ -178,6 +189,11 @@ export function AppShell({ children }: { children: ReactNode }) {
                 </Link>
               );
             })}
+            <NotificationNavLink
+              active={pathname === "/app/notificacoes"}
+              onNavigate={() => setDrawer(false)}
+              className="py-3"
+            />
             {isAdmin && (
               <Link
                 to="/admin/selecoes"

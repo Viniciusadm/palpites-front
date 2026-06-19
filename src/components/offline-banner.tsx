@@ -13,7 +13,7 @@ export function OfflineBanner() {
     >
       <WifiOff className="h-3.5 w-3.5 shrink-0" />
       <span className="truncate">
-        Você está offline — exibindo dados salvos. Ações indisponíveis.
+        Você está offline - exibindo dados salvos. Ações indisponíveis.
       </span>
     </div>
   );

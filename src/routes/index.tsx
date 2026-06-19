@@ -1,6 +1,7 @@
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { Trophy, Users, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Logo } from "@/components/logo";
 import { getToken } from "@/api/session";
 
 export const Route = createFileRoute("/")({
@@ -11,7 +12,7 @@ export const Route = createFileRoute("/")({
   },
   head: () => ({
     meta: [
-      { title: "Bolão Copa — Crie ou entre em um bolão" },
+      { title: "Bolão Copa - Crie ou entre em um bolão" },
       {
         name: "description",
         content:
@@ -25,14 +26,9 @@ export const Route = createFileRoute("/")({
 function Landing() {
   return (
     <main className="relative min-h-screen overflow-hidden">
-      <div className="pointer-events-none absolute -top-40 left-1/2 h-[500px] w-[500px] -translate-x-1/2 rounded-full bg-primary/20 blur-3xl" />
-
       <header className="relative z-10 mx-auto flex max-w-6xl items-center justify-between px-6 py-6">
-        <Link to="/" className="flex items-center gap-2">
-          <div className="grid h-9 w-9 place-items-center rounded-xl gold-gradient shadow-[var(--shadow-gold)]">
-            <Trophy className="h-5 w-5 text-primary-foreground" />
-          </div>
-          <span className="font-display text-lg font-semibold">Bolão Copa</span>
+        <Link to="/">
+          <Logo />
         </Link>
         <Link
           to="/login"

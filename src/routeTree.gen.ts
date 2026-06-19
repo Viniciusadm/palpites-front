@@ -21,6 +21,7 @@ import { Route as BolaoCriarRouteImport } from './routes/bolao.criar'
 import { Route as AppRankingRouteImport } from './routes/app.ranking'
 import { Route as AppParticipantesRouteImport } from './routes/app.participantes'
 import { Route as AppPalpitesRouteImport } from './routes/app.palpites'
+import { Route as AppNotificacoesRouteImport } from './routes/app.notificacoes'
 import { Route as AppJogosRouteImport } from './routes/app.jogos'
 import { Route as AppHistoricoRouteImport } from './routes/app.historico'
 import { Route as AppConfiguracoesRouteImport } from './routes/app.configuracoes'
@@ -87,6 +88,11 @@ const AppPalpitesRoute = AppPalpitesRouteImport.update({
   path: '/palpites',
   getParentRoute: () => AppRoute,
 } as any)
+const AppNotificacoesRoute = AppNotificacoesRouteImport.update({
+  id: '/notificacoes',
+  path: '/notificacoes',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppJogosRoute = AppJogosRouteImport.update({
   id: '/jogos',
   path: '/jogos',
@@ -124,6 +130,7 @@ export interface FileRoutesByFullPath {
   '/app/configuracoes': typeof AppConfiguracoesRoute
   '/app/historico': typeof AppHistoricoRoute
   '/app/jogos': typeof AppJogosRoute
+  '/app/notificacoes': typeof AppNotificacoesRoute
   '/app/palpites': typeof AppPalpitesRoute
   '/app/participantes': typeof AppParticipantesRoute
   '/app/ranking': typeof AppRankingRoute
@@ -141,6 +148,7 @@ export interface FileRoutesByTo {
   '/app/configuracoes': typeof AppConfiguracoesRoute
   '/app/historico': typeof AppHistoricoRoute
   '/app/jogos': typeof AppJogosRoute
+  '/app/notificacoes': typeof AppNotificacoesRoute
   '/app/palpites': typeof AppPalpitesRoute
   '/app/participantes': typeof AppParticipantesRoute
   '/app/ranking': typeof AppRankingRoute
@@ -161,6 +169,7 @@ export interface FileRoutesById {
   '/app/configuracoes': typeof AppConfiguracoesRoute
   '/app/historico': typeof AppHistoricoRoute
   '/app/jogos': typeof AppJogosRoute
+  '/app/notificacoes': typeof AppNotificacoesRoute
   '/app/palpites': typeof AppPalpitesRoute
   '/app/participantes': typeof AppParticipantesRoute
   '/app/ranking': typeof AppRankingRoute
@@ -182,6 +191,7 @@ export interface FileRouteTypes {
     | '/app/configuracoes'
     | '/app/historico'
     | '/app/jogos'
+    | '/app/notificacoes'
     | '/app/palpites'
     | '/app/participantes'
     | '/app/ranking'
@@ -199,6 +209,7 @@ export interface FileRouteTypes {
     | '/app/configuracoes'
     | '/app/historico'
     | '/app/jogos'
+    | '/app/notificacoes'
     | '/app/palpites'
     | '/app/participantes'
     | '/app/ranking'
@@ -218,6 +229,7 @@ export interface FileRouteTypes {
     | '/app/configuracoes'
     | '/app/historico'
     | '/app/jogos'
+    | '/app/notificacoes'
     | '/app/palpites'
     | '/app/participantes'
     | '/app/ranking'
@@ -323,6 +335,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppPalpitesRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/notificacoes': {
+      id: '/app/notificacoes'
+      path: '/notificacoes'
+      fullPath: '/app/notificacoes'
+      preLoaderRoute: typeof AppNotificacoesRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/jogos': {
       id: '/app/jogos'
       path: '/jogos'
@@ -379,6 +398,7 @@ interface AppRouteChildren {
   AppConfiguracoesRoute: typeof AppConfiguracoesRoute
   AppHistoricoRoute: typeof AppHistoricoRoute
   AppJogosRoute: typeof AppJogosRoute
+  AppNotificacoesRoute: typeof AppNotificacoesRoute
   AppPalpitesRoute: typeof AppPalpitesRoute
   AppParticipantesRoute: typeof AppParticipantesRoute
   AppRankingRoute: typeof AppRankingRoute
@@ -389,6 +409,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppConfiguracoesRoute: AppConfiguracoesRoute,
   AppHistoricoRoute: AppHistoricoRoute,
   AppJogosRoute: AppJogosRoute,
+  AppNotificacoesRoute: AppNotificacoesRoute,
   AppPalpitesRoute: AppPalpitesRoute,
   AppParticipantesRoute: AppParticipantesRoute,
   AppRankingRoute: AppRankingRoute,

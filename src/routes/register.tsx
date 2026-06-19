@@ -2,11 +2,14 @@ import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-ro
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { ArrowLeft, UserPlus } from "lucide-react";
+import { Check, UserPlus, X } from "lucide-react";
 import { toast } from "sonner";
+import { AuthLayout } from "@/components/auth-layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
+import { passwordRules } from "@/lib/password";
 import { useRegister } from "@/api/auth";
 import { getToken, setToken } from "@/api/session";
 import { getPendingInvite } from "@/lib/invite";
@@ -19,14 +22,18 @@ export const Route = createFileRoute("/register")({
       throw redirect({ to: "/app" });
     }
   },
-  head: () => ({ meta: [{ title: "Criar conta — Bolão Copa" }] }),
+  head: () => ({ meta: [{ title: "Criar conta - Bolão Copa" }] }),
   component: RegisterPage,
 });
 
 const schema = z.object({
   display_name: z.string().min(2, "Informe seu nome"),
   email: z.string().email("E-mail inválido"),
-  password: z.string().min(6, "A senha deve ter ao menos 6 caracteres"),
+  password: z
+    .string()
+    .min(8, "A senha deve ter ao menos 8 caracteres")
+    .regex(/[A-Za-z]/, "A senha deve conter ao menos uma letra")
+    .regex(/[0-9]/, "A senha deve conter ao menos um número"),
 });
 
 type Form = z.infer<typeof schema>;
@@ -39,8 +46,10 @@ function RegisterPage() {
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors },
   } = useForm<Form>({ resolver: zodResolver(schema) });
+  const passwordValue = watch("password") ?? "";
 
   const onSubmit = handleSubmit(async (values) => {
     if (!online) {
@@ -59,17 +68,10 @@ function RegisterPage() {
   });
 
   return (
-    <main className="mx-auto min-h-screen max-w-xl px-5 py-8">
-      <Link
-        to="/"
-        className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary"
-      >
-        <ArrowLeft className="h-4 w-4" /> Voltar
-      </Link>
-
+    <AuthLayout>
       <form
         onSubmit={onSubmit}
-        className="mt-10 rounded-3xl border border-border bg-card p-6 sm:p-8"
+        className="w-full rounded-3xl border border-border bg-card p-6 shadow-[var(--shadow-card)] sm:p-8"
       >
         <div className="grid h-12 w-12 place-items-center rounded-2xl bg-secondary">
           <UserPlus className="h-6 w-6 text-primary" />
@@ -97,7 +99,7 @@ function RegisterPage() {
           <Input
             id="email"
             type="email"
-            placeholder="voce@email.com"
+            placeholder="email@email.com"
             className="h-12 text-base"
             {...register("email")}
           />
@@ -106,14 +108,33 @@ function RegisterPage() {
 
         <div className="mt-4 space-y-2">
           <Label htmlFor="password">Senha</Label>
-          <Input
+          <PasswordInput
             id="password"
-            type="password"
             placeholder="••••••••"
             className="h-12 text-base"
             {...register("password")}
           />
           {errors.password && <p className="text-xs text-destructive">{errors.password.message}</p>}
+          <ul className="mt-2 space-y-1">
+            {passwordRules.map((rule) => {
+              const ok = rule.test(passwordValue);
+              return (
+                <li
+                  key={rule.label}
+                  className={`flex items-center gap-1.5 text-xs ${
+                    ok ? "text-emerald-500" : "text-muted-foreground"
+                  }`}
+                >
+                  {ok ? (
+                    <Check className="h-3.5 w-3.5 shrink-0" />
+                  ) : (
+                    <X className="h-3.5 w-3.5 shrink-0" />
+                  )}
+                  {rule.label}
+                </li>
+              );
+            })}
+          </ul>
         </div>
 
         <Button
@@ -131,6 +152,6 @@ function RegisterPage() {
           </Link>
         </p>
       </form>
-    </main>
+    </AuthLayout>
   );
 }

@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Eye, Lock, LogOut, Target } from "lucide-react";
+import { z } from "zod";
+import { Lock, LogOut, Target, Trash2, UserMinus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
@@ -21,8 +22,12 @@ import {
   usePools,
   useUpdatePool,
   useLeavePool,
+  useDeletePool,
   useScoringRules,
   useUpdateScoringRules,
+  useAllowedEmails,
+  useAddAllowedEmail,
+  useRemoveAllowedEmail,
 } from "@/api/pools";
 import { useNotificationPreferences, useUpdateNotificationPreferences } from "@/api/notifications";
 import { useOnline } from "@/hooks/use-online";
@@ -30,7 +35,7 @@ import { useAuthStore } from "@/store/auth-store";
 import type { NotificationPreference, ScoringRuleKey } from "@/api/types";
 
 export const Route = createFileRoute("/app/configuracoes")({
-  head: () => ({ meta: [{ title: "Configurações — Bolão Copa" }] }),
+  head: () => ({ meta: [{ title: "Configurações - Bolão Copa" }] }),
   component: ConfiguracoesPage,
 });
 
@@ -58,7 +63,18 @@ const SCORING_RULES: { key: ScoringRuleKey; label: string; help: string; fallbac
 const MIN_RULE_POINTS = 0;
 const MAX_RULE_POINTS = 1000;
 
+const PREF_LABELS: Record<string, string> = {
+  in_app: "No app",
+  push: "Push",
+  new_match: "Nova partida",
+  match_result: "Resultado da partida",
+  prediction_reminder: "Lembrete de palpite",
+  ranking_update: "Atualização de ranking",
+  member_joined: "Novo participante",
+};
+
 function label(value: string) {
+  if (PREF_LABELS[value]) return PREF_LABELS[value];
   const text = value.replace(/_/g, " ");
   return text.charAt(0).toUpperCase() + text.slice(1);
 }
@@ -74,14 +90,19 @@ function ConfiguracoesPage() {
 
   const updatePool = useUpdatePool(poolId);
   const leavePool = useLeavePool(poolId);
+  const deletePool = useDeletePool(poolId);
   const prefs = useNotificationPreferences(poolId);
   const updatePrefs = useUpdateNotificationPreferences(poolId);
   const scoringRules = useScoringRules(poolId);
   const updateScoring = useUpdateScoringRules(poolId);
+  const allowedEmails = useAllowedEmails(poolId);
+  const addAllowedEmail = useAddAllowedEmail(poolId);
+  const removeAllowedEmail = useRemoveAllowedEmail(poolId);
 
   const [name, setName] = useState("");
-  const [rankingPublic, setRankingPublic] = useState(true);
-  const [isPrivate, setIsPrivate] = useState(false);
+  const [confirmName, setConfirmName] = useState("");
+  const [joinRequiresAllowlist, setJoinRequiresAllowlist] = useState(false);
+  const [newEmail, setNewEmail] = useState("");
   const [points, setPoints] = useState<Record<ScoringRuleKey, string>>({
     exact_score: "10",
     correct_outcome: "5",
@@ -91,8 +112,7 @@ function ConfiguracoesPage() {
   useEffect(() => {
     if (!pool) return;
     setName(pool.name);
-    setRankingPublic(pool.ranking_public);
-    setIsPrivate(pool.visibility === "private");
+    setJoinRequiresAllowlist(pool.join_requires_allowlist);
   }, [pool]);
 
   useEffect(() => {
@@ -120,8 +140,7 @@ function ConfiguracoesPage() {
     updatePool.mutate(
       {
         name: name.trim(),
-        visibility: isPrivate ? "private" : "public",
-        ranking_public: rankingPublic,
+        join_requires_allowlist: joinRequiresAllowlist,
         prediction_lock_offset_minutes: pool.prediction_lock_offset_minutes,
         status: pool.status,
       },
@@ -131,6 +150,38 @@ function ConfiguracoesPage() {
           toast.error(error instanceof Error ? error.message : "Não foi possível salvar"),
       },
     );
+  };
+
+  const addEmail = () => {
+    if (!online) {
+      toast.error("Sem conexão. Conecte-se para realizar esta ação.");
+      return;
+    }
+    const email = newEmail.trim();
+    if (!z.string().email().safeParse(email).success) {
+      toast.error("E-mail inválido");
+      return;
+    }
+    addAllowedEmail.mutate(email, {
+      onSuccess: () => {
+        setNewEmail("");
+        toast.success("E-mail adicionado");
+      },
+      onError: (error) =>
+        toast.error(error instanceof Error ? error.message : "Não foi possível adicionar"),
+    });
+  };
+
+  const removeEmail = (id: string) => {
+    if (!online) {
+      toast.error("Sem conexão. Conecte-se para realizar esta ação.");
+      return;
+    }
+    removeAllowedEmail.mutate(id, {
+      onSuccess: () => toast.success("E-mail removido"),
+      onError: (error) =>
+        toast.error(error instanceof Error ? error.message : "Não foi possível remover"),
+    });
   };
 
   const saveScoring = () => {
@@ -154,7 +205,7 @@ function ConfiguracoesPage() {
       rules.push({ rule_key: rule.key, points: value });
     }
     updateScoring.mutate(rules, {
-      onSuccess: () => toast.success("Pontuação atualizada — ranking recalculado"),
+      onSuccess: () => toast.success("Pontuação atualizada - ranking recalculado"),
       onError: (error) =>
         toast.error(error instanceof Error ? error.message : "Não foi possível salvar"),
     });
@@ -191,6 +242,24 @@ function ConfiguracoesPage() {
     });
   };
 
+  const canConfirmDelete = !!pool && confirmName.trim() === pool.name.trim();
+
+  const remove = () => {
+    if (!online) {
+      toast.error("Sem conexão. Conecte-se para realizar esta ação.");
+      return;
+    }
+    if (!canConfirmDelete) return;
+    deletePool.mutate(confirmName, {
+      onSuccess: () => {
+        toast.success("Bolão excluído");
+        navigate({ to: "/" });
+      },
+      onError: (error) =>
+        toast.error(error instanceof Error ? error.message : "Não foi possível excluir o bolão"),
+    });
+  };
+
   return (
     <div>
       <header className="mb-6">
@@ -218,20 +287,69 @@ function ConfiguracoesPage() {
           </div>
           <div className="mt-4 space-y-3">
             <Row
-              icon={Eye}
-              label="Mostrar ranking publicamente"
-              checked={rankingPublic}
-              onChange={setRankingPublic}
-              disabled={!isOwner}
-            />
-            <Row
               icon={Lock}
-              label="Bolão privado (somente por convite)"
-              checked={isPrivate}
-              onChange={setIsPrivate}
+              label="Exigir lista de e-mails autorizados para entrar"
+              checked={joinRequiresAllowlist}
+              onChange={setJoinRequiresAllowlist}
               disabled={!isOwner}
             />
           </div>
+          {joinRequiresAllowlist && (
+            <div className="mt-4 space-y-3 rounded-xl bg-surface p-3">
+              <h3 className="text-sm font-semibold">E-mails autorizados</h3>
+              {isOwner && (
+                <div className="flex items-center gap-2">
+                  <Input
+                    type="email"
+                    value={newEmail}
+                    onChange={(e) => setNewEmail(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        addEmail();
+                      }
+                    }}
+                    placeholder="email@email.com"
+                    autoComplete="off"
+                    className="h-11"
+                  />
+                  <Button
+                    onClick={addEmail}
+                    disabled={!isOwner || !online || addAllowedEmail.isPending}
+                    className="gold-gradient font-semibold text-primary-foreground hover:opacity-90"
+                  >
+                    Adicionar
+                  </Button>
+                </div>
+              )}
+              {(allowedEmails.data ?? []).length === 0 ? (
+                <p className="text-xs text-muted-foreground">Nenhum e-mail adicionado ainda.</p>
+              ) : (
+                <ul className="space-y-2">
+                  {allowedEmails.data!.map((item) => (
+                    <li
+                      key={item.id}
+                      className="flex items-center gap-3 rounded-2xl border border-border bg-card p-3"
+                    >
+                      <span className="min-w-0 flex-1 truncate text-sm">{item.email}</span>
+                      {isOwner && (
+                        <Button
+                          onClick={() => removeEmail(item.id)}
+                          disabled={removeAllowedEmail.isPending || !online}
+                          variant="ghost"
+                          size="icon"
+                          className="text-muted-foreground hover:bg-destructive/15 hover:text-destructive"
+                          aria-label="Remover e-mail"
+                        >
+                          <UserMinus className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          )}
           {isOwner && (
             <Button
               onClick={saveSettings}
@@ -358,6 +476,60 @@ function ConfiguracoesPage() {
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
+
+          {isOwner && pool && (
+            <div className="mt-6 border-t border-destructive/20 pt-5">
+              <p className="text-sm text-muted-foreground">
+                Excluir o bolão é permanente e remove todos os palpites, membros e o ranking. Esta
+                ação não pode ser desfeita.
+              </p>
+              <AlertDialog onOpenChange={(open) => !open && setConfirmName("")}>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    disabled={deletePool.isPending || !online}
+                    variant="outline"
+                    className="mt-4 border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                  >
+                    <Trash2 className="mr-1.5 h-4 w-4" />
+                    {deletePool.isPending ? "Excluindo..." : "Excluir bolão"}
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Excluir bolão?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Esta ação é permanente e remove todos os palpites, membros e o ranking. Não é
+                      possível desfazer.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <div className="space-y-2">
+                    <Label htmlFor="confirm-delete">
+                      Digite <span className="font-semibold text-foreground">{pool.name}</span> para
+                      confirmar
+                    </Label>
+                    <Input
+                      id="confirm-delete"
+                      value={confirmName}
+                      onChange={(e) => setConfirmName(e.target.value)}
+                      placeholder={pool.name}
+                      autoComplete="off"
+                      className="h-11"
+                    />
+                  </div>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={remove}
+                      disabled={!canConfirmDelete || deletePool.isPending || !online}
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    >
+                      Excluir definitivamente
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </div>
+          )}
         </Card>
       </div>
     </div>
