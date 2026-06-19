@@ -123,30 +123,32 @@ function HistoryPage() {
           </div>
 
           {upcoming.length > 0 && (
-            <Section title="Palpites futuros">
-              <ul className="space-y-2">
-                {upcoming.map((e) => {
-                  const { home, away } = teamsFor(e.match_id);
-                  return (
-                    <li
-                      key={e.match_id}
-                      className="flex items-center gap-3 rounded-xl border border-border bg-card p-3 text-sm"
-                    >
-                      <span className="rounded-md bg-primary/15 px-2 py-0.5 text-[10px] font-semibold text-primary">
-                        {formatDateBR(e.kickoff_at, { day: "2-digit", month: "short" })}
-                      </span>
-                      <span className="flex-1 truncate">
-                        {home.flag} {home.name} <span className="text-muted-foreground">vs</span>{" "}
-                        {away.name} {away.flag}
-                      </span>
-                      <span className="font-display font-bold tabular-nums">
-                        {e.prediction_home} × {e.prediction_away}
-                      </span>
-                    </li>
-                  );
-                })}
-              </ul>
-            </Section>
+            <div className="mb-3">
+              <Section title="Palpites futuros">
+                <ul className="space-y-2">
+                  {upcoming.map((e) => {
+                    const { home, away } = teamsFor(e.match_id);
+                    return (
+                      <li
+                        key={e.match_id}
+                        className="flex items-center gap-3 rounded-xl border border-border bg-card p-3 text-sm"
+                      >
+                        <span className="rounded-md bg-primary/15 px-2 py-0.5 text-[10px] font-semibold text-primary">
+                          {formatDateBR(e.kickoff_at, { day: "2-digit", month: "short" })}
+                        </span>
+                        <span className="flex-1 truncate">
+                          {home.flag} {home.name} <span className="text-muted-foreground">vs</span>{" "}
+                          {away.name} {away.flag}
+                        </span>
+                        <span className="font-display font-bold tabular-nums">
+                          {e.prediction_home} × {e.prediction_away}
+                        </span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </Section>
+            </div>
           )}
 
           <Section title="Palpites anteriores">
@@ -155,7 +157,7 @@ function HistoryPage() {
                 Nenhum palpite encerrado ainda.
               </p>
             ) : (
-              <ul className="space-y-2 m-2">
+              <ul className="space-y-2">
                 {past.map((e) => {
                   const { home, away } = teamsFor(e.match_id);
                   const pts = e.points_awarded ?? 0;
