@@ -11,10 +11,10 @@ import { useAuthStore } from "@/store/auth-store";
 
 export const Route = createFileRoute("/app/participantes")({
   head: () => ({ meta: [{ title: "Participantes - Bolão Copa" }] }),
-  component: ParticipantesPage,
+  component: ParticipantsPage,
 });
 
-function ParticipantesPage() {
+function ParticipantsPage() {
   const poolId = useAuthStore((s) => s.poolId) ?? "";
   const userId = useAuthStore((s) => s.userId);
   const online = useOnline();
@@ -31,13 +31,13 @@ function ParticipantesPage() {
     toast.success("Link de convite copiado!");
   };
 
-  const remove = (memberId: string, nome: string) => {
+  const remove = (memberId: string, name: string) => {
     if (!online) {
       toast.error("Sem conexão. Conecte-se para realizar esta ação.");
       return;
     }
     removeMember.mutate(memberId, {
-      onSuccess: () => toast.success(`${nome} foi removido`),
+      onSuccess: () => toast.success(`${name} foi removido`),
       onError: (error) =>
         toast.error(error instanceof Error ? error.message : "Não foi possível remover"),
     });

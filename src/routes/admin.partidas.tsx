@@ -36,12 +36,12 @@ import { brasiliaInputToIso, formatGroupDate, isoToBrasiliaInput } from "@/lib/d
 
 export const Route = createFileRoute("/admin/partidas")({
   head: () => ({ meta: [{ title: "Admin · Partidas" }] }),
-  component: PartidasAdmin,
+  component: AdminMatches,
 });
 
 const tournamentId = import.meta.env.VITE_TOURNAMENT_ID;
 
-function PartidasAdmin() {
+function AdminMatches() {
   const online = useOnline();
   const tournament = useTournamentDetail(tournamentId);
   const teams = useTeams();
@@ -249,7 +249,7 @@ function PartidasAdmin() {
                     match={m}
                     home={teamInfo(m.home_team_id)}
                     away={teamInfo(m.away_team_id)}
-                    fase={stageNameById.get(m.stage_id) ?? ""}
+                    stage={stageNameById.get(m.stage_id) ?? ""}
                     onEnterResult={(home, away) => submitResult(m, home, away)}
                     savingResult={enterResult.isPending || !online}
                     onEdit={() => startEdit(m)}
@@ -273,7 +273,7 @@ function PartidasAdmin() {
                     match={m}
                     home={teamInfo(m.home_team_id)}
                     away={teamInfo(m.away_team_id)}
-                    fase={stageNameById.get(m.stage_id) ?? ""}
+                    stage={stageNameById.get(m.stage_id) ?? ""}
                     onEnterResult={(home, away) => submitResult(m, home, away)}
                     savingResult={enterResult.isPending || !online}
                     onEdit={() => startEdit(m)}

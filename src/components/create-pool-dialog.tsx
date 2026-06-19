@@ -25,7 +25,7 @@ export function CreatePoolDialog({
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
-  const [nome, setNome] = useState("");
+  const [name, setName] = useState("");
   const [inviteCode, setInviteCode] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const setPoolId = useAuthStore((s) => s.setPoolId);
@@ -33,7 +33,7 @@ export function CreatePoolDialog({
   const createPool = useCreatePool();
 
   const reset = () => {
-    setNome("");
+    setName("");
     setInviteCode(null);
     setCopied(false);
   };
@@ -48,12 +48,12 @@ export function CreatePoolDialog({
       toast.error("Sem conexão. Conecte-se para realizar esta ação.");
       return;
     }
-    if (!nome.trim()) {
+    if (!name.trim()) {
       toast.error("Dê um nome ao seu bolão");
       return;
     }
     createPool.mutate(
-      { name: nome.trim(), tournament_id: tournamentId },
+      { name: name.trim(), tournament_id: tournamentId },
       {
         onSuccess: (pool) => {
           setPoolId(pool.id);
@@ -94,12 +94,12 @@ export function CreatePoolDialog({
             </DialogHeader>
 
             <div className="space-y-2">
-              <Label htmlFor="novo-bolao-nome">Nome do bolão</Label>
+              <Label htmlFor="new-pool-name">Nome do bolão</Label>
               <Input
-                id="novo-bolao-nome"
+                id="new-pool-name"
                 placeholder="Ex: Bolão da firma 2026"
-                value={nome}
-                onChange={(e) => setNome(e.target.value)}
+                value={name}
+                onChange={(e) => setName(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleCreate()}
                 className="h-12 text-base"
                 autoFocus
@@ -122,7 +122,7 @@ export function CreatePoolDialog({
                   <Check className="h-5 w-5 text-success" />
                 </div>
                 <div>
-                  <DialogTitle>Pronto! "{nome}" está no ar</DialogTitle>
+                  <DialogTitle>Pronto! "{name}" está no ar</DialogTitle>
                   <DialogDescription>Compartilhe o link de convite abaixo</DialogDescription>
                 </div>
               </div>

@@ -19,10 +19,10 @@ import type { TeamResponse } from "@/api/types";
 
 export const Route = createFileRoute("/admin/selecoes")({
   head: () => ({ meta: [{ title: "Admin · Seleções" }] }),
-  component: SelecoesAdmin,
+  component: AdminTeams,
 });
 
-function SelecoesAdmin() {
+function AdminTeams() {
   const online = useOnline();
   const teams = useTeams();
   const createTeam = useCreateTeam();

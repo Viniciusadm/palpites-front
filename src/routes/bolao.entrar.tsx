@@ -24,10 +24,10 @@ export const Route = createFileRoute("/bolao/entrar")({
       throw redirect({ to: "/login" });
     }
   },
-  component: EntrarBolao,
+  component: JoinPool,
 });
 
-function EntrarBolao() {
+function JoinPool() {
   const search = Route.useSearch();
   const [code, setCode] = useState(search.code ?? getPendingInvite() ?? "");
   const navigate = useNavigate();

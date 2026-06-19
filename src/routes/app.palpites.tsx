@@ -11,20 +11,20 @@ import { useTeams } from "@/api/teams";
 import { useTournamentDetail } from "@/api/tournaments";
 import { useMyPredictions, useSavePrediction } from "@/api/predictions";
 import { usePools } from "@/api/pools";
-import { matchToPartida, teamToSelecao } from "@/api/adapters";
+import { toMatch, toTeam } from "@/api/adapters";
 import { useAuthStore } from "@/store/auth-store";
-import type { Selecao } from "@/api/types";
+import type { Team } from "@/api/types";
 
 export const Route = createFileRoute("/app/palpites")({
   head: () => ({ meta: [{ title: "Meus palpites - Bolão Copa" }] }),
-  component: PalpitesPage,
+  component: PredictionsPage,
 });
 
-type Tab = "proximos" | "meus" | "encerrados";
+type Tab = "upcoming" | "mine" | "finished";
 
-const TBD: Selecao = { id: "", nome: "A definir", flag: "🏳️", grupo: "" };
+const TBD: Team = { id: "", name: "A definir", flag: "🏳️", group: "" };
 
-function PalpitesPage() {
+function PredictionsPage() {
   const poolId = useAuthStore((s) => s.poolId) ?? "";
   const pools = usePools();
   const tournamentId = pools.data?.find((p) => p.id === poolId)?.tournament_id ?? "";
@@ -35,11 +35,11 @@ function PalpitesPage() {
   const predictions = useMyPredictions(poolId);
   const savePrediction = useSavePrediction(poolId);
 
-  const [tab, setTab] = useState<Tab>("proximos");
+  const [tab, setTab] = useState<Tab>("upcoming");
 
   const teamsById = useMemo(() => {
-    const map = new Map<string, Selecao>();
-    (teams.data ?? []).forEach((t) => map.set(t.id, teamToSelecao(t)));
+    const map = new Map<string, Team>();
+    (teams.data ?? []).forEach((t) => map.set(t.id, toTeam(t)));
     return map;
   }, [teams.data]);
 
@@ -57,19 +57,19 @@ function PalpitesPage() {
     return map;
   }, [predictions.data]);
 
-  const partidas = useMemo(
-    () => (matches.data ?? []).map((m) => matchToPartida(m, stageNameById.get(m.stage_id) ?? "")),
+  const allMatches = useMemo(
+    () => (matches.data ?? []).map((m) => toMatch(m, stageNameById.get(m.stage_id) ?? "")),
     [matches.data, stageNameById],
   );
 
   const filtered = useMemo(() => {
-    if (tab === "encerrados") return partidas.filter((p) => p.status === "finished");
-    if (tab === "meus") return partidas.filter((p) => predictionByMatch.has(p.id));
-    return partidas.filter((p) => p.status !== "finished");
-  }, [tab, partidas, predictionByMatch]);
+    if (tab === "finished") return allMatches.filter((p) => p.status === "finished");
+    if (tab === "mine") return allMatches.filter((p) => predictionByMatch.has(p.id));
+    return allMatches.filter((p) => p.status !== "finished");
+  }, [tab, allMatches, predictionByMatch]);
 
   const grouped = useMemo(() => {
-    const map = new Map<string, typeof partidas>();
+    const map = new Map<string, typeof allMatches>();
     [...filtered]
       .sort((a, b) => +new Date(a.date) - +new Date(b.date))
       .forEach((m) => {
@@ -106,9 +106,9 @@ function PalpitesPage() {
 
       <Tabs value={tab} onValueChange={(v) => setTab(v as Tab)}>
         <TabsList className="bg-surface">
-          <TabsTrigger value="proximos">Próximos</TabsTrigger>
-          <TabsTrigger value="meus">Meus palpites</TabsTrigger>
-          <TabsTrigger value="encerrados">Encerrados</TabsTrigger>
+          <TabsTrigger value="upcoming">Próximos</TabsTrigger>
+          <TabsTrigger value="mine">Meus palpites</TabsTrigger>
+          <TabsTrigger value="finished">Encerrados</TabsTrigger>
         </TabsList>
       </Tabs>
 

@@ -1,13 +1,13 @@
 export type MatchStatus = "scheduled" | "live" | "finished";
 
-export interface Selecao {
+export interface Team {
   id: string;
-  nome: string;
+  name: string;
   flag: string;
-  grupo: string;
+  group: string;
 }
 
-export interface Partida {
+export interface Match {
   id: string;
   homeId: string;
   awayId: string;
@@ -15,7 +15,7 @@ export interface Partida {
   status: MatchStatus;
   homeScore: number | null;
   awayScore: number | null;
-  fase: string;
+  stage: string;
 }
 
 export interface CreateTeamRequest {

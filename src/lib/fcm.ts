@@ -1,11 +1,5 @@
 import { initializeApp, getApps, type FirebaseApp } from "firebase/app";
-import {
-  getMessaging,
-  getToken,
-  isSupported,
-  onMessage,
-  type Messaging,
-} from "firebase/messaging";
+import { getMessaging, getToken, isSupported, onMessage, type Messaging } from "firebase/messaging";
 import { registerDevice } from "@/api/notifications";
 
 const firebaseConfig = {
@@ -20,10 +14,10 @@ const vapidKey = import.meta.env.VITE_FCM_VAPID_KEY;
 function isConfigured(): boolean {
   return Boolean(
     firebaseConfig.apiKey &&
-      firebaseConfig.projectId &&
-      firebaseConfig.messagingSenderId &&
-      firebaseConfig.appId &&
-      vapidKey,
+    firebaseConfig.projectId &&
+    firebaseConfig.messagingSenderId &&
+    firebaseConfig.appId &&
+    vapidKey,
   );
 }
 

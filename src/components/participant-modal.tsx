@@ -5,11 +5,11 @@ import { cn } from "@/lib/utils";
 import { useMemberPredictions } from "@/api/pools";
 import { useMatches } from "@/api/matches";
 import { useTeams } from "@/api/teams";
-import { teamToSelecao } from "@/api/adapters";
+import { toTeam } from "@/api/adapters";
 import type { MatchResponse, RankingEntry } from "@/api/types";
-import type { Selecao } from "@/api/types";
+import type { Team } from "@/api/types";
 
-const TBD: Selecao = { id: "", nome: "A definir", flag: "🏳️", grupo: "" };
+const TBD: Team = { id: "", name: "A definir", flag: "🏳️", group: "" };
 
 export function ParticipantModal({
   entry,
@@ -33,8 +33,8 @@ export function ParticipantModal({
   }, [matches.data]);
 
   const teamsById = useMemo(() => {
-    const map = new Map<string, Selecao>();
-    (teams.data ?? []).forEach((t) => map.set(t.id, teamToSelecao(t)));
+    const map = new Map<string, Team>();
+    (teams.data ?? []).forEach((t) => map.set(t.id, toTeam(t)));
     return map;
   }, [teams.data]);
 
@@ -120,13 +120,13 @@ export function ParticipantModal({
                   >
                     <div className="flex items-center gap-3 text-sm">
                       <span className="text-lg">{home.flag}</span>
-                      <span className="min-w-0 flex-1 truncate text-right">{home.nome}</span>
+                      <span className="min-w-0 flex-1 truncate text-right">{home.name}</span>
                       <div className="flex shrink-0 items-center gap-2 px-2 font-display font-bold tabular-nums">
                         <span>{p.prediction_home}</span>
                         <span className="text-muted-foreground">×</span>
                         <span>{p.prediction_away}</span>
                       </div>
-                      <span className="min-w-0 flex-1 truncate">{away.nome}</span>
+                      <span className="min-w-0 flex-1 truncate">{away.name}</span>
                       <span className="text-lg">{away.flag}</span>
                     </div>
                     <div className="mt-2 flex items-center justify-between text-[11px] text-muted-foreground">

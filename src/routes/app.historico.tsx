@@ -6,20 +6,20 @@ import { formatDateBR } from "@/lib/datetime";
 import { useHistory } from "@/api/history";
 import { useMatches } from "@/api/matches";
 import { useTeams } from "@/api/teams";
-import { teamToSelecao } from "@/api/adapters";
+import { toTeam } from "@/api/adapters";
 import { usePools } from "@/api/pools";
 import { useAuthStore } from "@/store/auth-store";
 import type { MatchResponse } from "@/api/types";
-import type { Selecao } from "@/api/types";
+import type { Team } from "@/api/types";
 
 export const Route = createFileRoute("/app/historico")({
   head: () => ({ meta: [{ title: "Histórico - Bolão Copa" }] }),
-  component: HistoricoPage,
+  component: HistoryPage,
 });
 
-const TBD: Selecao = { id: "", nome: "A definir", flag: "🏳️", grupo: "" };
+const TBD: Team = { id: "", name: "A definir", flag: "🏳️", group: "" };
 
-function HistoricoPage() {
+function HistoryPage() {
   const poolId = useAuthStore((s) => s.poolId) ?? "";
   const pools = usePools();
   const tournamentId = pools.data?.find((p) => p.id === poolId)?.tournament_id ?? "";
@@ -35,14 +35,14 @@ function HistoricoPage() {
   }, [matches.data]);
 
   const teamsById = useMemo(() => {
-    const map = new Map<string, Selecao>();
-    (teams.data ?? []).forEach((t) => map.set(t.id, teamToSelecao(t)));
+    const map = new Map<string, Team>();
+    (teams.data ?? []).forEach((t) => map.set(t.id, toTeam(t)));
     return map;
   }, [teams.data]);
 
   const entries = history.data?.entries ?? [];
-  const futuros = entries.filter((e) => e.match_status === "scheduled");
-  const passados = [...entries]
+  const upcoming = entries.filter((e) => e.match_status === "scheduled");
+  const past = [...entries]
     .filter((e) => e.match_status === "finished")
     .sort((a, b) => +new Date(b.kickoff_at) - +new Date(a.kickoff_at));
 
@@ -122,10 +122,10 @@ function HistoricoPage() {
             />
           </div>
 
-          {futuros.length > 0 && (
+          {upcoming.length > 0 && (
             <Section title="Palpites futuros">
               <ul className="space-y-2">
-                {futuros.map((e) => {
+                {upcoming.map((e) => {
                   const { home, away } = teamsFor(e.match_id);
                   return (
                     <li
@@ -136,8 +136,8 @@ function HistoricoPage() {
                         {formatDateBR(e.kickoff_at, { day: "2-digit", month: "short" })}
                       </span>
                       <span className="flex-1 truncate">
-                        {home.flag} {home.nome} <span className="text-muted-foreground">vs</span>{" "}
-                        {away.nome} {away.flag}
+                        {home.flag} {home.name} <span className="text-muted-foreground">vs</span>{" "}
+                        {away.name} {away.flag}
                       </span>
                       <span className="font-display font-bold tabular-nums">
                         {e.prediction_home} × {e.prediction_away}
@@ -150,13 +150,13 @@ function HistoricoPage() {
           )}
 
           <Section title="Palpites anteriores">
-            {passados.length === 0 ? (
+            {past.length === 0 ? (
               <p className="rounded-xl border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
                 Nenhum palpite encerrado ainda.
               </p>
             ) : (
               <ul className="space-y-2">
-                {passados.map((e) => {
+                {past.map((e) => {
                   const { home, away } = teamsFor(e.match_id);
                   const pts = e.points_awarded ?? 0;
                   const win = pts > 0;
@@ -180,8 +180,8 @@ function HistoricoPage() {
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="truncate text-sm font-medium">
-                          {home.flag} {home.nome} <span className="text-muted-foreground">vs</span>{" "}
-                          {away.nome} {away.flag}
+                          {home.flag} {home.name} <span className="text-muted-foreground">vs</span>{" "}
+                          {away.name} {away.flag}
                         </div>
                         <div className="mt-0.5 text-xs text-muted-foreground">
                           Palpite:{" "}

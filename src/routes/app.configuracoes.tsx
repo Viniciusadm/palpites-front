@@ -36,7 +36,7 @@ import type { NotificationPreference, ScoringRuleKey } from "@/api/types";
 
 export const Route = createFileRoute("/app/configuracoes")({
   head: () => ({ meta: [{ title: "Configurações - Bolão Copa" }] }),
-  component: ConfiguracoesPage,
+  component: SettingsPage,
 });
 
 const SCORING_RULES: { key: ScoringRuleKey; label: string; help: string; fallback: number }[] = [
@@ -79,7 +79,7 @@ function label(value: string) {
   return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
-function ConfiguracoesPage() {
+function SettingsPage() {
   const navigate = useNavigate();
   const poolId = useAuthStore((s) => s.poolId) ?? "";
   const userId = useAuthStore((s) => s.userId);

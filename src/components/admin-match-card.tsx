@@ -9,7 +9,7 @@ export function AdminMatchCard({
   match,
   home,
   away,
-  fase,
+  stage,
   onEnterResult,
   savingResult = false,
   onEdit,
@@ -19,7 +19,7 @@ export function AdminMatchCard({
   match: MatchResponse;
   home: { flag: string; name: string };
   away: { flag: string; name: string };
-  fase: string;
+  stage: string;
   onEnterResult: (home: number, away: number) => void;
   savingResult?: boolean;
   onEdit: () => void;
@@ -44,7 +44,7 @@ export function AdminMatchCard({
 
   return (
     <MatchCardShell
-      fase={fase}
+      stage={stage}
       dateISO={match.kickoff_at}
       status={match.status}
       home={home}

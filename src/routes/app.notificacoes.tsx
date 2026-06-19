@@ -1,13 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import {
-  Bell,
-  CalendarClock,
-  CheckCheck,
-  Flag,
-  Trophy,
-  UserPlus,
-  Clock,
-} from "lucide-react";
+import { Bell, CalendarClock, CheckCheck, Flag, Trophy, UserPlus, Clock } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { formatDateBR } from "@/lib/datetime";
@@ -22,7 +14,7 @@ import type { Notification } from "@/api/types";
 
 export const Route = createFileRoute("/app/notificacoes")({
   head: () => ({ meta: [{ title: "Notificações - Bolão Copa" }] }),
-  component: NotificacoesPage,
+  component: NotificationsPage,
 });
 
 const TYPE_ICON: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -33,7 +25,7 @@ const TYPE_ICON: Record<string, React.ComponentType<{ className?: string }>> = {
   prediction_reminder: Clock,
 };
 
-function NotificacoesPage() {
+function NotificationsPage() {
   const navigate = useNavigate();
   const online = useOnline();
   const notifications = useNotifications();
@@ -151,7 +143,6 @@ function NotificacoesPage() {
 }
 
 function toDate(iso: string): Date {
-  // O backend pode enviar "YYYY-MM-DD HH:mm:ss" (UTC, sem fuso) ou ISO com `Z`.
   const normalized = iso.includes("T") || iso.endsWith("Z") ? iso : `${iso.replace(" ", "T")}Z`;
   return new Date(normalized);
 }

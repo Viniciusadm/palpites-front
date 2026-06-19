@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { useOnline } from "@/hooks/use-online";
 import { useMe } from "@/api/auth";
-import { type Partida, type Selecao } from "@/api/types";
+import { type Match, type Team } from "@/api/types";
 import { MatchCardShell, ScoreInputs, StatusBadge, TeamSide } from "@/components/match-card-shell";
 
 export { StatusBadge, TeamSide };
@@ -20,9 +20,9 @@ export function MatchCard({
   onSave,
   saving = false,
 }: {
-  match: Partida;
-  home: Selecao;
-  away: Selecao;
+  match: Match;
+  home: Team;
+  away: Team;
   editable?: boolean;
   prediction?: { home: number; away: number; points: number | null };
   onSave?: (home: number, away: number) => void;
@@ -91,11 +91,11 @@ export function MatchCard({
         </Link>
       )}
       <MatchCardShell
-        fase={match.fase}
+        stage={match.stage}
         dateISO={match.date}
         status={match.status}
-        home={{ flag: home.flag, name: home.nome }}
-        away={{ flag: away.flag, name: away.nome }}
+        home={{ flag: home.flag, name: home.name }}
+        away={{ flag: away.flag, name: away.name }}
         dimmed={notOpenYet}
         score={score}
       >

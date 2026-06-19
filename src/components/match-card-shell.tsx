@@ -94,7 +94,7 @@ export function ScoreInputs({
 }
 
 export function MatchCardShell({
-  fase,
+  stage,
   dateISO,
   status,
   home,
@@ -103,7 +103,7 @@ export function MatchCardShell({
   score,
   children,
 }: {
-  fase: string;
+  stage: string;
   dateISO: string;
   status: MatchStatus;
   home: { flag: string; name: string };
@@ -123,7 +123,7 @@ export function MatchCardShell({
       )}
     >
       <header className="flex flex-wrap items-center gap-x-2 gap-y-1 border-b border-border/60 bg-surface/60 px-4 py-2.5 text-xs text-muted-foreground">
-        <span className="font-medium text-foreground/80">{fase || "-"}</span>
+        <span className="font-medium text-foreground/80">{stage || "-"}</span>
         <span className="hidden sm:inline">•</span>
         <span className="order-last w-full sm:order-none sm:w-auto">
           {dateStr} • {timeStr}

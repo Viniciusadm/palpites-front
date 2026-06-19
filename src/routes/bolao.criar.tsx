@@ -19,13 +19,13 @@ export const Route = createFileRoute("/bolao/criar")({
       throw redirect({ to: "/login" });
     }
   },
-  component: CriarBolao,
+  component: CreatePool,
 });
 
 const tournamentId = import.meta.env.VITE_TOURNAMENT_ID;
 
-function CriarBolao() {
-  const [nome, setNome] = useState("");
+function CreatePool() {
+  const [name, setName] = useState("");
   const [inviteCode, setInviteCode] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const navigate = useNavigate();
@@ -38,12 +38,12 @@ function CriarBolao() {
       toast.error("Sem conexão. Conecte-se para realizar esta ação.");
       return;
     }
-    if (!nome.trim()) {
+    if (!name.trim()) {
       toast.error("Dê um nome ao seu bolão");
       return;
     }
     createPool.mutate(
-      { name: nome.trim(), tournament_id: tournamentId },
+      { name: name.trim(), tournament_id: tournamentId },
       {
         onSuccess: (pool) => {
           setPoolId(pool.id);
@@ -81,12 +81,12 @@ function CriarBolao() {
           </p>
 
           <div className="mt-8 space-y-2">
-            <Label htmlFor="nome">Nome do bolão</Label>
+            <Label htmlFor="name">Nome do bolão</Label>
             <Input
-              id="nome"
+              id="name"
               placeholder="Ex: Bolão da firma 2026"
-              value={nome}
-              onChange={(e) => setNome(e.target.value)}
+              value={name}
+              onChange={(e) => setName(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleCreate()}
               className="h-12 text-base"
             />
@@ -107,7 +107,7 @@ function CriarBolao() {
               <Check className="h-5 w-5 text-success" />
             </div>
             <div>
-              <h2 className="font-display text-xl font-bold">Pronto! "{nome}" está no ar</h2>
+              <h2 className="font-display text-xl font-bold">Pronto! "{name}" está no ar</h2>
               <p className="text-sm text-muted-foreground">Compartilhe o link de convite abaixo</p>
             </div>
           </div>

@@ -16,21 +16,21 @@ import {
 import { useTeams } from "@/api/teams";
 import { useMatches } from "@/api/matches";
 import { useTournamentDetail } from "@/api/tournaments";
-import { matchToPartida, teamToSelecao } from "@/api/adapters";
+import { toMatch, toTeam } from "@/api/adapters";
 import { formatGroupDate } from "@/lib/datetime";
 import { cn } from "@/lib/utils";
-import type { Selecao } from "@/api/types";
+import type { Team } from "@/api/types";
 
 export const Route = createFileRoute("/app/jogos")({
   head: () => ({ meta: [{ title: "Jogos - Bolão Copa" }] }),
-  component: JogosPage,
+  component: GamesPage,
 });
 
 const tournamentId = import.meta.env.VITE_TOURNAMENT_ID;
 
-const TBD: Selecao = { id: "", nome: "A definir", flag: "🏳️", grupo: "" };
+const TBD: Team = { id: "", name: "A definir", flag: "🏳️", group: "" };
 
-function JogosPage() {
+function GamesPage() {
   const tournament = useTournamentDetail(tournamentId);
   const teams = useTeams();
   const matches = useMatches(tournamentId);
@@ -39,8 +39,8 @@ function JogosPage() {
   const [open, setOpen] = useState(false);
 
   const teamsById = useMemo(() => {
-    const map = new Map<string, Selecao>();
-    (teams.data ?? []).forEach((t) => map.set(t.id, teamToSelecao(t)));
+    const map = new Map<string, Team>();
+    (teams.data ?? []).forEach((t) => map.set(t.id, toTeam(t)));
     return map;
   }, [teams.data]);
 
@@ -58,20 +58,20 @@ function JogosPage() {
     });
     return Array.from(ids)
       .map((id) => teamsById.get(id))
-      .filter((s): s is Selecao => !!s)
-      .sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"));
+      .filter((s): s is Team => !!s)
+      .sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
   }, [matches.data, teamsById]);
 
   const selectedCountry = countryId ? teamsById.get(countryId) : undefined;
 
   const grouped = useMemo(() => {
-    const partidas = (matches.data ?? []).map((m) =>
-      matchToPartida(m, stageNameById.get(m.stage_id) ?? ""),
+    const allMatches = (matches.data ?? []).map((m) =>
+      toMatch(m, stageNameById.get(m.stage_id) ?? ""),
     );
     const filtered = countryId
-      ? partidas.filter((m) => m.homeId === countryId || m.awayId === countryId)
-      : partidas;
-    const map = new Map<string, typeof partidas>();
+      ? allMatches.filter((m) => m.homeId === countryId || m.awayId === countryId)
+      : allMatches;
+    const map = new Map<string, typeof allMatches>();
     [...filtered]
       .sort((a, b) => +new Date(a.date) - +new Date(b.date))
       .forEach((m) => {
@@ -113,7 +113,7 @@ function JogosPage() {
                     <>
                       <span className="text-base leading-none">{selectedCountry.flag}</span>
                       <span className="truncate font-medium text-foreground">
-                        {selectedCountry.nome}
+                        {selectedCountry.name}
                       </span>
                     </>
                   ) : (
@@ -161,14 +161,14 @@ function JogosPage() {
                     {countries.map((s) => (
                       <CommandItem
                         key={s.id}
-                        value={s.nome}
+                        value={s.name}
                         onSelect={() => {
                           setCountryId(s.id);
                           setOpen(false);
                         }}
                       >
                         <span className="mr-2 text-base leading-none">{s.flag}</span>
-                        <span className="truncate">{s.nome}</span>
+                        <span className="truncate">{s.name}</span>
                         <Check
                           className={cn(
                             "ml-auto h-4 w-4",
@@ -206,7 +206,7 @@ function JogosPage() {
           <CalendarX className="mx-auto h-10 w-10 text-muted-foreground" />
           <p className="mt-3 text-sm text-muted-foreground">
             {selectedCountry
-              ? `Nenhum jogo para ${selectedCountry.nome}.`
+              ? `Nenhum jogo para ${selectedCountry.name}.`
               : "Nenhum jogo cadastrado."}
           </p>
           {selectedCountry && (
