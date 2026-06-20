@@ -1,4 +1,5 @@
 import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -11,6 +12,7 @@ import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { useLogin } from "@/api/auth";
 import { getToken, setToken } from "@/api/session";
+import { SESSION_EXPIRED_KEY } from "@/api/client";
 import { getPendingInvite } from "@/lib/invite";
 import { useOnline } from "@/hooks/use-online";
 import { useAuthStore } from "@/store/auth-store";
@@ -42,6 +44,13 @@ function LoginPage() {
     handleSubmit,
     formState: { errors },
   } = useForm<Form>({ resolver: zodResolver(schema) });
+
+  useEffect(() => {
+    if (window.sessionStorage.getItem(SESSION_EXPIRED_KEY)) {
+      window.sessionStorage.removeItem(SESSION_EXPIRED_KEY);
+      toast.error("Sua sessão expirou. Faça login novamente.");
+    }
+  }, []);
 
   const onSubmit = handleSubmit(async (values) => {
     if (!online) {
