@@ -6,8 +6,14 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { useOnline } from "@/hooks/use-online";
 import { useMe } from "@/api/auth";
-import { type Match, type Team } from "@/api/types";
-import { MatchCardShell, ScoreInputs, StatusBadge, TeamSide } from "@/components/match-card-shell";
+import { type Match, type PenaltySide, type Team } from "@/api/types";
+import {
+  MatchCardShell,
+  PenaltyPicker,
+  ScoreInputs,
+  StatusBadge,
+  TeamSide,
+} from "@/components/match-card-shell";
 import { isResultWindowOpen } from "@/lib/datetime";
 
 export { StatusBadge, TeamSide };
@@ -25,12 +31,20 @@ export function MatchCard({
   home: Team;
   away: Team;
   editable?: boolean;
-  prediction?: { home: number; away: number; points: number | null };
-  onSave?: (home: number, away: number) => void;
+  prediction?: {
+    home: number;
+    away: number;
+    points: number | null;
+    penaltiesPick?: PenaltySide | null;
+  };
+  onSave?: (home: number, away: number, penaltiesPick: PenaltySide | null) => void;
   saving?: boolean;
 }) {
   const [h, setH] = useState<string>(prediction?.home?.toString() ?? "");
   const [a, setA] = useState<string>(prediction?.away?.toString() ?? "");
+  const [penaltiesPick, setPenaltiesPick] = useState<PenaltySide | null>(
+    prediction?.penaltiesPick ?? null,
+  );
   const online = useOnline();
   const me = useMe();
   const isAdmin = me.data?.user.role === "admin";
@@ -45,18 +59,25 @@ export function MatchCard({
   const locked = !editable || match.status !== "scheduled" || notOpenYet;
   const pts = match.status === "finished" ? (prediction?.points ?? 0) : 0;
 
+  const hn = parseInt(h, 10);
+  const an = parseInt(a, 10);
+  const isDraw = !isNaN(hn) && !isNaN(an) && hn === an;
+  const showPenalties = !locked && match.canGoToPenalties && isDraw;
+
   const save = () => {
     if (!online) {
       toast.error("Sem conexão. Conecte-se para realizar esta ação.");
       return;
     }
-    const hn = parseInt(h, 10);
-    const an = parseInt(a, 10);
     if (isNaN(hn) || isNaN(an) || hn < 0 || an < 0) {
       toast.error("Informe um placar válido");
       return;
     }
-    onSave?.(hn, an);
+    if (showPenalties && !penaltiesPick) {
+      toast.error("Escolha quem vence nos pênaltis");
+      return;
+    }
+    onSave?.(hn, an, showPenalties ? penaltiesPick : null);
   };
 
   const score = locked ? (
@@ -99,23 +120,42 @@ export function MatchCard({
         score={score}
       >
         {editable && locked && prediction && (
-          <div className="mt-4 flex items-center justify-between rounded-xl bg-surface px-3 py-2 text-xs">
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <Lock className="h-3.5 w-3.5" />
-              Seu palpite:{" "}
-              <span className="font-semibold text-foreground tabular-nums">
-                {prediction.home} × {prediction.away}
-              </span>
+          <div className="mt-4 space-y-1.5">
+            <div className="flex items-center justify-between rounded-xl bg-surface px-3 py-2 text-xs">
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <Lock className="h-3.5 w-3.5" />
+                Seu palpite:{" "}
+                <span className="font-semibold text-foreground tabular-nums">
+                  {prediction.home} × {prediction.away}
+                </span>
+              </div>
+              {match.status === "finished" && prediction.points !== null && (
+                <span
+                  className={cn(
+                    "rounded-md px-2 py-0.5 font-semibold tabular-nums",
+                    pts > 0 ? "bg-success/20 text-success" : "bg-destructive/15 text-destructive",
+                  )}
+                >
+                  {pts > 0 ? `+${pts} pts` : "0 pts"}
+                </span>
+              )}
             </div>
-            {match.status === "finished" && prediction.points !== null && (
-              <span
-                className={cn(
-                  "rounded-md px-2 py-0.5 font-semibold tabular-nums",
-                  pts > 0 ? "bg-success/20 text-success" : "bg-destructive/15 text-destructive",
+            {prediction.penaltiesPick && (
+              <div className="rounded-xl bg-surface px-3 py-2 text-xs text-muted-foreground">
+                Pênaltis (seu palpite):{" "}
+                <span className="font-semibold text-foreground">
+                  {prediction.penaltiesPick === "home" ? home.name : away.name}
+                </span>
+                {match.status === "finished" && match.penaltiesWinner && (
+                  <>
+                    {" "}
+                    • venceu:{" "}
+                    <span className="font-semibold text-foreground">
+                      {match.penaltiesWinner === "home" ? home.name : away.name}
+                    </span>
+                  </>
                 )}
-              >
-                {pts > 0 ? `+${pts} pts` : "0 pts"}
-              </span>
+              </div>
             )}
           </div>
         )}
@@ -125,6 +165,16 @@ export function MatchCard({
             <Lock className="h-3.5 w-3.5" />
             {noTeams ? "Aguardando definição dos times" : "Palpites abrem mais perto do jogo"}
           </div>
+        )}
+
+        {showPenalties && (
+          <PenaltyPicker
+            value={penaltiesPick}
+            onChange={setPenaltiesPick}
+            homeLabel={home.name}
+            awayLabel={away.name}
+            prompt="Empate! Quem vence nos pênaltis?"
+          />
         )}
 
         {!locked && (

@@ -195,6 +195,23 @@ function HistoryPage() {
                             {e.result_home} × {e.result_away}
                           </span>
                         </div>
+                        {e.prediction_penalties_pick && (
+                          <div className="mt-0.5 text-xs text-muted-foreground">
+                            Pênaltis:{" "}
+                            <span className="text-foreground">
+                              {e.prediction_penalties_pick === "home" ? home.name : away.name}
+                            </span>
+                            {e.result_penalties_winner && (
+                              <>
+                                {" "}
+                                · venceu:{" "}
+                                <span className="text-foreground">
+                                  {e.result_penalties_winner === "home" ? home.name : away.name}
+                                </span>
+                              </>
+                            )}
+                          </div>
+                        )}
                       </div>
                       <span
                         className={cn(

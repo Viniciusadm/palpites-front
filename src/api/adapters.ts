@@ -18,6 +18,8 @@ export function toMatch(match: MatchResponse, stageLabel: string): Match {
     status: match.status,
     homeScore: match.home_score,
     awayScore: match.away_score,
+    canGoToPenalties: match.can_go_to_penalties,
+    penaltiesWinner: match.penalties_winner,
     stage: stageLabel,
   };
 }

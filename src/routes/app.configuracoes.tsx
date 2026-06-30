@@ -57,6 +57,12 @@ const SCORING_RULES: { key: ScoringRuleKey; label: string; help: string; fallbac
     help: "Quando acerta o resultado e também a diferença de gols.",
     fallback: 0,
   },
+  {
+    key: "penalties_winner",
+    label: "Acertar os pênaltis",
+    help: "Em jogos que vão para os pênaltis: acertou o empate e quem venceu na disputa.",
+    fallback: 5,
+  },
 ];
 
 const MIN_RULE_POINTS = 0;
@@ -88,6 +94,7 @@ function SettingsPage() {
     exact_score: "10",
     correct_outcome: "5",
     correct_goal_difference: "0",
+    penalties_winner: "5",
   });
 
   useEffect(() => {

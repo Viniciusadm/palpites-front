@@ -1,5 +1,8 @@
 export type MatchStatus = "scheduled" | "live" | "finished";
 
+/** Which side won a penalty shootout (mirrors the home/away score structure). */
+export type PenaltySide = "home" | "away";
+
 export interface Team {
   id: string;
   name: string;
@@ -15,6 +18,8 @@ export interface Match {
   status: MatchStatus;
   homeScore: number | null;
   awayScore: number | null;
+  canGoToPenalties: boolean;
+  penaltiesWinner: PenaltySide | null;
   stage: string;
 }
 
@@ -31,6 +36,7 @@ export interface CreateMatchRequest {
   home_team_id: string | null;
   away_team_id: string | null;
   kickoff_at: string;
+  can_go_to_penalties: boolean;
 }
 
 export interface UpdateMatchRequest extends CreateMatchRequest {
@@ -40,6 +46,7 @@ export interface UpdateMatchRequest extends CreateMatchRequest {
 export interface EnterResultRequest {
   home_score: number;
   away_score: number;
+  penalties_winner?: PenaltySide | null;
 }
 
 export interface TeamResponse {
@@ -64,6 +71,8 @@ export interface MatchResponse {
   status: MatchStatus;
   home_score: number | null;
   away_score: number | null;
+  can_go_to_penalties: boolean;
+  penalties_winner: PenaltySide | null;
   finished_at: string | null;
 }
 
@@ -181,7 +190,11 @@ export interface AllowedEmailsResponse {
   emails: AllowedEmail[];
 }
 
-export type ScoringRuleKey = "exact_score" | "correct_outcome" | "correct_goal_difference";
+export type ScoringRuleKey =
+  | "exact_score"
+  | "correct_outcome"
+  | "correct_goal_difference"
+  | "penalties_winner";
 
 export interface ScoringRuleResponse {
   id: string;
@@ -245,6 +258,7 @@ export interface RankingEntry {
   exact_count: number;
   outcome_count: number;
   hits_count: number;
+  penalties_count: number;
   position: number;
 }
 
@@ -260,6 +274,8 @@ export interface MemberPrediction {
   prediction_away: number;
   result_home: number | null;
   result_away: number | null;
+  prediction_penalties_pick: PenaltySide | null;
+  result_penalties_winner: PenaltySide | null;
   points_awarded: number | null;
 }
 
@@ -272,6 +288,7 @@ export interface PredictionResponse {
   match_id: string;
   home_score: number;
   away_score: number;
+  penalties_pick: PenaltySide | null;
   points_awarded: number | null;
   scored_at: string | null;
 }
@@ -283,6 +300,7 @@ export interface PredictionsListResponse {
 export interface UpsertPredictionRequest {
   home_score: number;
   away_score: number;
+  penalties_pick?: PenaltySide | null;
 }
 
 export interface HistoryEntry {
@@ -293,6 +311,8 @@ export interface HistoryEntry {
   prediction_away: number;
   result_home: number | null;
   result_away: number | null;
+  prediction_penalties_pick: PenaltySide | null;
+  result_penalties_winner: PenaltySide | null;
   points_awarded: number | null;
   hit_kind: string | null;
 }
@@ -303,6 +323,7 @@ export interface HistoryResponse {
   exact_count: number;
   outcome_count: number;
   hits_count: number;
+  penalties_count: number;
   errors_count: number;
   pending_count: number;
   entries: HistoryEntry[];

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { AdminMatchCard } from "@/components/admin-match-card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import {
   Dialog,
   DialogContent,
@@ -31,7 +32,7 @@ import {
   useDeleteMatch,
   useEnterResult,
 } from "@/api/matches";
-import type { MatchResponse, MatchStatus, TeamResponse } from "@/api/types";
+import type { MatchResponse, MatchStatus, PenaltySide, TeamResponse } from "@/api/types";
 import {
   brasiliaInputToIso,
   formatGroupDate,
@@ -64,6 +65,7 @@ function AdminMatches() {
     awayId: "",
     date: isoToBrasiliaInput(new Date().toISOString()),
     status: "scheduled" as MatchStatus,
+    canGoToPenalties: false,
   });
 
   const teamList = teams.data ?? [];
@@ -109,7 +111,12 @@ function AdminMatches() {
     [matches.data],
   );
 
-  const submitResult = (m: MatchResponse, home: number, away: number) => {
+  const submitResult = (
+    m: MatchResponse,
+    home: number,
+    away: number,
+    penaltiesWinner: PenaltySide | null,
+  ) => {
     if (!online) {
       toast.error("Sem conexão. Conecte-se para realizar esta ação.");
       return;
@@ -119,7 +126,10 @@ function AdminMatches() {
       return;
     }
     enterResult.mutate(
-      { matchId: m.id, body: { home_score: home, away_score: away } },
+      {
+        matchId: m.id,
+        body: { home_score: home, away_score: away, penalties_winner: penaltiesWinner },
+      },
       {
         onSuccess: () => toast.success("Resultado salvo"),
         onError: (error) =>
@@ -136,6 +146,7 @@ function AdminMatches() {
       awayId: teamList[1]?.id ?? "",
       date: isoToBrasiliaInput(new Date().toISOString()),
       status: "scheduled",
+      canGoToPenalties: false,
     });
     setOpen(true);
   };
@@ -147,6 +158,7 @@ function AdminMatches() {
       awayId: m.away_team_id ?? "",
       date: isoToBrasiliaInput(m.kickoff_at),
       status: m.status,
+      canGoToPenalties: m.can_go_to_penalties,
     });
     setOpen(true);
   };
@@ -175,6 +187,7 @@ function AdminMatches() {
             away_team_id: form.awayId,
             kickoff_at,
             status: form.status,
+            can_go_to_penalties: form.canGoToPenalties,
           },
         },
         opts,
@@ -186,6 +199,7 @@ function AdminMatches() {
           home_team_id: form.homeId,
           away_team_id: form.awayId,
           kickoff_at,
+          can_go_to_penalties: form.canGoToPenalties,
         },
         opts,
       );
@@ -259,7 +273,9 @@ function AdminMatches() {
                     home={teamInfo(m.home_team_id)}
                     away={teamInfo(m.away_team_id)}
                     stage={stageNameById.get(m.stage_id) ?? ""}
-                    onEnterResult={(home, away) => submitResult(m, home, away)}
+                    onEnterResult={(home, away, penaltiesWinner) =>
+                      submitResult(m, home, away, penaltiesWinner)
+                    }
                     savingResult={enterResult.isPending || !online}
                     onEdit={() => startEdit(m)}
                     onRemove={() => remove(m)}
@@ -283,7 +299,9 @@ function AdminMatches() {
                     home={teamInfo(m.home_team_id)}
                     away={teamInfo(m.away_team_id)}
                     stage={stageNameById.get(m.stage_id) ?? ""}
-                    onEnterResult={(home, away) => submitResult(m, home, away)}
+                    onEnterResult={(home, away, penaltiesWinner) =>
+                      submitResult(m, home, away, penaltiesWinner)
+                    }
                     savingResult={enterResult.isPending || !online}
                     onEdit={() => startEdit(m)}
                     onRemove={() => remove(m)}
@@ -380,6 +398,18 @@ function AdminMatches() {
                 </Select>
               </div>
             )}
+            <div className="flex items-center justify-between rounded-lg border border-border bg-surface px-3 py-2.5">
+              <div className="space-y-0.5">
+                <Label>Pode ir para os pênaltis</Label>
+                <p className="text-xs text-muted-foreground">
+                  Em caso de empate, o resultado pedirá quem venceu nos pênaltis.
+                </p>
+              </div>
+              <Switch
+                checked={form.canGoToPenalties}
+                onCheckedChange={(v) => setForm({ ...form, canGoToPenalties: v })}
+              />
+            </div>
           </div>
           <DialogFooter>
             <Button variant="ghost" onClick={() => setOpen(false)}>

@@ -13,7 +13,7 @@ import { useMyPredictions, useSavePrediction } from "@/api/predictions";
 import { usePools } from "@/api/pools";
 import { toMatch, toTeam } from "@/api/adapters";
 import { useAuthStore } from "@/store/auth-store";
-import type { Team } from "@/api/types";
+import type { PenaltySide, Team } from "@/api/types";
 
 export const Route = createFileRoute("/app/palpites")({
   head: () => ({ meta: [{ title: "Meus palpites - Bolão Copa" }] }),
@@ -50,9 +50,17 @@ function PredictionsPage() {
   }, [tournament.data]);
 
   const predictionByMatch = useMemo(() => {
-    const map = new Map<string, { home: number; away: number; points: number | null }>();
+    const map = new Map<
+      string,
+      { home: number; away: number; points: number | null; penaltiesPick: PenaltySide | null }
+    >();
     (predictions.data ?? []).forEach((p) =>
-      map.set(p.match_id, { home: p.home_score, away: p.away_score, points: p.points_awarded }),
+      map.set(p.match_id, {
+        home: p.home_score,
+        away: p.away_score,
+        points: p.points_awarded,
+        penaltiesPick: p.penalties_pick,
+      }),
     );
     return map;
   }, [predictions.data]);
@@ -84,9 +92,9 @@ function PredictionsPage() {
     tournament.isPending || teams.isPending || matches.isPending || predictions.isPending;
   const isError = teams.isError || matches.isError || predictions.isError;
 
-  const save = (matchId: string, home: number, away: number) => {
+  const save = (matchId: string, home: number, away: number, penaltiesPick: PenaltySide | null) => {
     savePrediction.mutate(
-      { matchId, body: { home_score: home, away_score: away } },
+      { matchId, body: { home_score: home, away_score: away, penalties_pick: penaltiesPick } },
       {
         onSuccess: () => toast.success("Palpite salvo!"),
         onError: (error) =>
@@ -153,7 +161,7 @@ function PredictionsPage() {
                     home={teamsById.get(m.homeId) ?? TBD}
                     away={teamsById.get(m.awayId) ?? TBD}
                     prediction={predictionByMatch.get(m.id)}
-                    onSave={(home, away) => save(m.id, home, away)}
+                    onSave={(home, away, penaltiesPick) => save(m.id, home, away, penaltiesPick)}
                     saving={savePrediction.isPending && savePrediction.variables?.matchId === m.id}
                   />
                 ))}

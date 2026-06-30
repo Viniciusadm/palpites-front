@@ -4,7 +4,7 @@ import { NumericInput } from "@/components/ui/numeric-input";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { formatMatchDate, formatMatchTime } from "@/lib/datetime";
-import { type MatchStatus } from "@/api/types";
+import { type MatchStatus, type PenaltySide } from "@/api/types";
 
 export function StatusBadge({ status }: { status: MatchStatus }) {
   if (status === "live") {
@@ -89,6 +89,52 @@ export function ScoreInputs({
         className="h-11 w-9 text-center text-lg font-bold tabular-nums sm:w-10"
         placeholder="-"
       />
+    </div>
+  );
+}
+
+/**
+ * Picker for who wins a penalty shootout. Shown only when a match can go to
+ * penalties and the entered score is a draw.
+ */
+export function PenaltyPicker({
+  value,
+  onChange,
+  homeLabel,
+  awayLabel,
+  disabled = false,
+  prompt,
+}: {
+  value: PenaltySide | null;
+  onChange: (side: PenaltySide) => void;
+  homeLabel: string;
+  awayLabel: string;
+  disabled?: boolean;
+  prompt: string;
+}) {
+  const option = (side: PenaltySide, label: string) => (
+    <button
+      type="button"
+      disabled={disabled}
+      onClick={() => onChange(side)}
+      className={cn(
+        "flex-1 rounded-lg border px-3 py-2 text-xs font-semibold transition-colors disabled:opacity-50",
+        value === side
+          ? "border-primary bg-primary/15 text-primary"
+          : "border-border bg-surface text-muted-foreground hover:border-primary/40",
+      )}
+    >
+      {label}
+    </button>
+  );
+
+  return (
+    <div className="mt-4 rounded-xl bg-surface px-3 py-3">
+      <p className="mb-2 text-xs font-medium text-muted-foreground">{prompt}</p>
+      <div className="flex items-center gap-2">
+        {option("home", homeLabel)}
+        {option("away", awayLabel)}
+      </div>
     </div>
   );
 }
