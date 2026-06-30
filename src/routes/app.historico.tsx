@@ -122,6 +122,28 @@ function HistoryPage() {
             />
           </div>
 
+          {((history.data!.penalties_count ?? 0) > 0 ||
+            (history.data!.penalties_no_draw_count ?? 0) > 0) && (
+            <div className="mb-6 flex flex-wrap gap-2 text-xs text-muted-foreground">
+              {(history.data!.penalties_count ?? 0) > 0 && (
+                <span className="rounded-md bg-surface px-2 py-1">
+                  Pênaltis cravando o empate:{" "}
+                  <span className="font-semibold text-foreground">
+                    {history.data!.penalties_count}
+                  </span>
+                </span>
+              )}
+              {(history.data!.penalties_no_draw_count ?? 0) > 0 && (
+                <span className="rounded-md bg-surface px-2 py-1">
+                  Vencedor nos pênaltis:{" "}
+                  <span className="font-semibold text-foreground">
+                    {history.data!.penalties_no_draw_count}
+                  </span>
+                </span>
+              )}
+            </div>
+          )}
+
           {upcoming.length > 0 && (
             <div className="mb-3">
               <Section title="Palpites futuros">
@@ -195,23 +217,30 @@ function HistoryPage() {
                             {e.result_home} × {e.result_away}
                           </span>
                         </div>
-                        {e.prediction_penalties_pick && (
-                          <div className="mt-0.5 text-xs text-muted-foreground">
-                            Pênaltis:{" "}
-                            <span className="text-foreground">
-                              {e.prediction_penalties_pick === "home" ? home.name : away.name}
-                            </span>
-                            {e.result_penalties_winner && (
-                              <>
-                                {" "}
-                                · venceu:{" "}
-                                <span className="text-foreground">
-                                  {e.result_penalties_winner === "home" ? home.name : away.name}
-                                </span>
-                              </>
-                            )}
-                          </div>
-                        )}
+                        {(() => {
+                          // Penalty call: explicit pick on a draw, else the side
+                          // implied by a decisive score.
+                          const call =
+                            e.prediction_penalties_pick ??
+                            (e.prediction_home > e.prediction_away
+                              ? "home"
+                              : e.prediction_home < e.prediction_away
+                                ? "away"
+                                : null);
+                          if (e.result_penalties_winner == null) return null;
+                          const teamName = (side: "home" | "away") =>
+                            side === "home" ? home.name : away.name;
+                          return (
+                            <div className="mt-0.5 text-xs text-muted-foreground">
+                              Pênaltis:{" "}
+                              <span className="text-foreground">{call ? teamName(call) : "—"}</span>{" "}
+                              · venceu:{" "}
+                              <span className="text-foreground">
+                                {teamName(e.result_penalties_winner)}
+                              </span>
+                            </div>
+                          );
+                        })()}
                       </div>
                       <span
                         className={cn(

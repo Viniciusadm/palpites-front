@@ -87,7 +87,7 @@ function RankingPage() {
                   onClick={() => setSelected(row)}
                   className={cn(
                     "rounded-sm border p-5 text-left transition-all hover:border-primary/60",
-                    colors[i]
+                    colors[i],
                   )}
                 >
                   <div className="flex items-center justify-between">

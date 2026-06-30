@@ -82,7 +82,12 @@ export function ParticipantModal({
                   <Trophy className="h-3 w-3" /> #{entry.position}
                 </span>
                 <span>{entry.hits_count} acertos</span>
-                {entry.penalties_count > 0 && <span>{entry.penalties_count} pênaltis</span>}
+                {(entry.penalties_count ?? 0) > 0 && (
+                  <span>{entry.penalties_count} pênaltis (empate)</span>
+                )}
+                {(entry.penalties_no_draw_count ?? 0) > 0 && (
+                  <span>{entry.penalties_no_draw_count} pênaltis (vencedor)</span>
+                )}
               </div>
             </div>
             <div className="text-right">
@@ -151,23 +156,38 @@ export function ParticipantModal({
                         </span>
                       )}
                     </div>
-                    {p.prediction_penalties_pick && (
-                      <div className="mt-1.5 text-[11px] text-muted-foreground">
-                        Pênaltis:{" "}
-                        <span className="font-medium text-foreground">
-                          {p.prediction_penalties_pick === "home" ? home.name : away.name}
-                        </span>
-                        {finished && p.result_penalties_winner && (
-                          <>
-                            {" "}
-                            • venceu:{" "}
-                            <span className="font-medium text-foreground">
-                              {p.result_penalties_winner === "home" ? home.name : away.name}
-                            </span>
-                          </>
-                        )}
-                      </div>
-                    )}
+                    {(() => {
+                      // The member's penalty call: explicit pick on a draw, otherwise
+                      // the side implied by a decisive score.
+                      const call =
+                        p.prediction_penalties_pick ??
+                        (p.prediction_home > p.prediction_away
+                          ? "home"
+                          : p.prediction_home < p.prediction_away
+                            ? "away"
+                            : null);
+                      const wentToPenalties = p.result_penalties_winner != null;
+                      if (!p.prediction_penalties_pick && !wentToPenalties) return null;
+                      const teamName = (side: "home" | "away") =>
+                        side === "home" ? home.name : away.name;
+                      return (
+                        <div className="mt-1.5 text-[11px] text-muted-foreground">
+                          Pênaltis:{" "}
+                          <span className="font-medium text-foreground">
+                            {call ? teamName(call) : "—"}
+                          </span>
+                          {wentToPenalties && (
+                            <>
+                              {" "}
+                              • venceu:{" "}
+                              <span className="font-medium text-foreground">
+                                {teamName(p.result_penalties_winner!)}
+                              </span>
+                            </>
+                          )}
+                        </div>
+                      );
+                    })()}
                   </li>
                 );
               })}

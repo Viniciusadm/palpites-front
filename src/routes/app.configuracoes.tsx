@@ -59,9 +59,15 @@ const SCORING_RULES: { key: ScoringRuleKey; label: string; help: string; fallbac
   },
   {
     key: "penalties_winner",
-    label: "Acertar os pênaltis",
-    help: "Em jogos que vão para os pênaltis: acertou o empate e quem venceu na disputa.",
+    label: "Pênaltis cravando o empate",
+    help: "Em jogos que vão para os pênaltis: cravou o empate e acertou quem venceu na disputa.",
     fallback: 5,
+  },
+  {
+    key: "penalties_winner_no_draw",
+    label: "Vencedor nos pênaltis (sem cravar o empate)",
+    help: "Apostou num vencedor, o jogo foi para os pênaltis e o time que você apontou venceu a disputa.",
+    fallback: 2,
   },
 ];
 
@@ -95,6 +101,7 @@ function SettingsPage() {
     correct_outcome: "5",
     correct_goal_difference: "0",
     penalties_winner: "5",
+    penalties_winner_no_draw: "2",
   });
 
   useEffect(() => {

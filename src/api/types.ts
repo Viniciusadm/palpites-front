@@ -194,7 +194,8 @@ export type ScoringRuleKey =
   | "exact_score"
   | "correct_outcome"
   | "correct_goal_difference"
-  | "penalties_winner";
+  | "penalties_winner"
+  | "penalties_winner_no_draw";
 
 export interface ScoringRuleResponse {
   id: string;
@@ -258,7 +259,9 @@ export interface RankingEntry {
   exact_count: number;
   outcome_count: number;
   hits_count: number;
-  penalties_count: number;
+  // Optional: clients with cached/old API responses may not include these.
+  penalties_count?: number;
+  penalties_no_draw_count?: number;
   position: number;
 }
 
@@ -323,7 +326,9 @@ export interface HistoryResponse {
   exact_count: number;
   outcome_count: number;
   hits_count: number;
-  penalties_count: number;
+  // Optional: clients with cached/old API responses may not include these.
+  penalties_count?: number;
+  penalties_no_draw_count?: number;
   errors_count: number;
   pending_count: number;
   entries: HistoryEntry[];
