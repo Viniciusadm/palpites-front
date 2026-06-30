@@ -280,6 +280,7 @@ export interface MemberPrediction {
   prediction_penalties_pick: PenaltySide | null;
   result_penalties_winner: PenaltySide | null;
   points_awarded: number | null;
+  point_reasons?: string[];
 }
 
 export interface MemberPredictionsResponse {

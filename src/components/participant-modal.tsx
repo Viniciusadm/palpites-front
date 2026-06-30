@@ -11,6 +11,14 @@ import type { Team } from "@/api/types";
 
 const TBD: Team = { id: "", name: "A definir", flag: "🏳️", group: "" };
 
+const REASON_LABELS: Record<string, string> = {
+  exact: "Placar exato",
+  goal_difference: "Saldo de gols",
+  outcome: "Acertou o resultado",
+  penalties_winner: "Pênaltis (empate)",
+  penalties_winner_no_draw: "Pênaltis (vencedor)",
+};
+
 export function ParticipantModal({
   entry,
   poolId,
@@ -119,6 +127,9 @@ export function ParticipantModal({
                 const { home, away } = teamsFor(p.match_id);
                 const pts = p.points_awarded;
                 const finished = p.match_status === "finished";
+                const reasons = p.point_reasons ?? [];
+                const teamName = (side: "home" | "away") =>
+                  side === "home" ? home.name : away.name;
                 return (
                   <li
                     key={p.match_id}
@@ -135,18 +146,24 @@ export function ParticipantModal({
                       <span className="min-w-0 flex-1 truncate">{away.name}</span>
                       <span className="text-lg">{away.flag}</span>
                     </div>
-                    <div className="mt-2 flex items-center justify-between text-[11px] text-muted-foreground">
+                    <div className="mt-2 flex items-center justify-between gap-2 text-[11px] text-muted-foreground">
                       <span>
-                        {finished
-                          ? `Resultado oficial: ${p.result_home} × ${p.result_away}`
-                          : p.match_status === "live"
-                            ? "Em andamento"
-                            : "A jogar"}
+                        {finished ? (
+                          <>
+                            Resultado oficial: {p.result_home} × {p.result_away}
+                            {p.result_penalties_winner &&
+                              ` · pênaltis: ${teamName(p.result_penalties_winner)}`}
+                          </>
+                        ) : p.match_status === "live" ? (
+                          "Em andamento"
+                        ) : (
+                          "A jogar"
+                        )}
                       </span>
                       {pts !== null && (
                         <span
                           className={cn(
-                            "rounded-md px-2 py-0.5 font-semibold tabular-nums",
+                            "shrink-0 rounded-md px-2 py-0.5 font-semibold tabular-nums",
                             pts > 0
                               ? "bg-primary/20 text-primary"
                               : "bg-destructive/15 text-destructive",
@@ -156,38 +173,18 @@ export function ParticipantModal({
                         </span>
                       )}
                     </div>
-                    {(() => {
-                      // The member's penalty call: explicit pick on a draw, otherwise
-                      // the side implied by a decisive score.
-                      const call =
-                        p.prediction_penalties_pick ??
-                        (p.prediction_home > p.prediction_away
-                          ? "home"
-                          : p.prediction_home < p.prediction_away
-                            ? "away"
-                            : null);
-                      const wentToPenalties = p.result_penalties_winner != null;
-                      if (!p.prediction_penalties_pick && !wentToPenalties) return null;
-                      const teamName = (side: "home" | "away") =>
-                        side === "home" ? home.name : away.name;
-                      return (
-                        <div className="mt-1.5 text-[11px] text-muted-foreground">
-                          Pênaltis:{" "}
-                          <span className="font-medium text-foreground">
-                            {call ? teamName(call) : "—"}
+                    {reasons.length > 0 && (
+                      <div className="mt-2 flex flex-wrap gap-1">
+                        {reasons.map((reason) => (
+                          <span
+                            key={reason}
+                            className="rounded-md bg-primary/10 px-1.5 py-0.5 text-[10px] font-medium text-primary"
+                          >
+                            {REASON_LABELS[reason] ?? reason}
                           </span>
-                          {wentToPenalties && (
-                            <>
-                              {" "}
-                              • venceu:{" "}
-                              <span className="font-medium text-foreground">
-                                {teamName(p.result_penalties_winner!)}
-                              </span>
-                            </>
-                          )}
-                        </div>
-                      );
-                    })()}
+                        ))}
+                      </div>
+                    )}
                   </li>
                 );
               })}
